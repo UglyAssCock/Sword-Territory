@@ -1,0 +1,59 @@
+name: Build Sword Territory APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Setup Java 17 for Android Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 4. Install Capacitor & AdMob Dependencies
+        run: npm install
+
+      - name: 5. Generate Capacitor Android Project
+        run: npx cap add android
+
+      - name: 6. Inject Google AdMob Test App ID into AndroidManifest.xml
+        run: |
+          node -e '
+            const fs = require("fs");
+            const file = "android/app/src/main/AndroidManifest.xml";
+            let xml = fs.readFileSync(file, "utf8");
+            const metaTag = `<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>`;
+            if (!xml.includes("com.google.android.gms.ads.APPLICATION_ID")) {
+              xml = xml.replace("</application>", "    " + metaTag + "\n    </application>");
+              fs.writeFileSync(file, xml, "utf8");
+            }
+          '
+
+      - name: 7. Sync Web Assets into Android Project
+        run: npx cap sync android
+
+      - name: 8. Build Debug APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: 9. Upload APK to GitHub Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sword-Territory-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
