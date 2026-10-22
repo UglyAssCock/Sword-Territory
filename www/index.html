@@ -3,36 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Sword Territory: Blade & Border</title>
+  <title>Sword Territory</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
-    <!-- TOP LIVE HUD (Visible during matches) -->
-    <div id="hud" class="hidden">
-      <div class="hud-top-bar">
-        <button id="btn-exit-match" class="hud-btn danger">✕ Exit</button>
-        <div id="hud-timer" class="hud-timer">02:30</div>
-        <div id="hud-zone-status" class="hud-zone">Zone: Safe</div>
-        <button id="btn-speed-toggle" class="hud-btn">1x</button>
-        <button id="btn-record-toggle" class="hud-btn record">⏺ Rec</button>
+
+    <!-- MATCH SCREEN (Reference Layout: Title + 4 Colored HUD Cards + Centered Square Arena) -->
+    <div id="match-screen" class="match-screen hidden">
+      <!-- Top Utility Bar -->
+      <div class="match-utility-bar">
+        <button id="btn-exit-match" class="util-btn danger">✕ Menu</button>
+        <div id="hud-timer" class="util-pill">02:30</div>
+        <div id="hud-zone-status" class="util-pill">Zone: Safe</div>
+        <button id="btn-speed-toggle" class="util-btn">1x</button>
+        <button id="btn-record-toggle" class="util-btn record">⏺ Rec</button>
       </div>
-      <!-- Country Stats Leaderboard Strip (HP, Area %, Swords, Speed, Barracks) -->
-      <div id="hud-leaderboard" class="hud-leaderboard"></div>
+
+      <!-- Viral Header Title & Subtitle -->
+      <div class="viral-header">
+        <h1 class="viral-title">SWORD TERRITORY</h1>
+        <p class="viral-subtitle">PAINT LAND • BREAK SWORDS • BE THE LAST</p>
+      </div>
+
+      <!-- Colored HUD Cards Row Above Arena -->
+      <div id="hud-leaderboard" class="hud-cards-row"></div>
+
+      <!-- Event Banner -->
       <div id="hud-banner" class="hud-banner hidden"></div>
-    </div>
 
-    <!-- MAIN GAME CANVAS -->
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- ON-SCREEN JOYSTICK & CONTROLS (Play Mode) -->
-    <div id="play-controls" class="hidden">
-      <div id="joystick-zone">
-        <div id="joystick-base">
-          <div id="joystick-knob"></div>
-        </div>
+      <!-- Perfect Square Arena Wrapper -->
+      <div id="arena-wrapper" class="arena-wrapper">
+        <canvas id="gameCanvas"></canvas>
       </div>
-      <button id="btn-dash-ability" class="dash-btn">⚡ BOOST</button>
+
+      <!-- On-Screen Joystick (Play Mode Only) -->
+      <div id="play-controls" class="hidden">
+        <div id="joystick-zone">
+          <div id="joystick-base">
+            <div id="joystick-knob"></div>
+          </div>
+        </div>
+        <button id="btn-dash-ability" class="dash-btn">⚡ BOOST</button>
+      </div>
     </div>
 
     <!-- MAIN MENU OVERLAY -->
@@ -40,37 +53,42 @@
       <div class="title-card">
         <div class="badge-viral">⚔️ VIRAL COUNTRY PAINT WAR</div>
         <h1>SWORD TERRITORY</h1>
-        <p class="subtitle">Blade &amp; Border — Paint Turf, Break Swords, Rule the Map</p>
+        <p class="subtitle">PAINT LAND • BREAK SWORDS • BE THE LAST</p>
         <div class="meta-strip">
-          <span id="streak-badge">🔥 Prediction Streak: 0</span>
-          <span id="coins-badge">🪙 Coins: 0</span>
+          <span id="streak-badge">🔥 Streak: 0</span>
+          <span id="coins-badge">🪙 Coins: 100</span>
         </div>
       </div>
 
       <div class="setup-box">
         <div class="setup-row">
-          <label>Players</label>
+          <label>Match Size</label>
           <select id="sel-player-count">
-            <option value="6">6 Countries (Fast Arena)</option>
-            <option value="8" selected>8 Countries (Standard)</option>
-            <option value="16">16 Countries (Mega Grid)</option>
-            <option value="32">32 Countries (Chaos Map)</option>
+            <option value="4" selected>4 Countries (2x2 Reference Map)</option>
+            <option value="6">6 Countries (3x2 Split Zones)</option>
+            <option value="8">8 Countries (4x2 Split Zones)</option>
+            <option value="16">16 Countries (4x4 Split Grid)</option>
+            <option value="32">32 Countries (8x4 Mega Grid)</option>
           </select>
         </div>
         <div class="setup-row">
           <label>Mode</label>
           <select id="sel-team-mode">
             <option value="ffa" selected>Free-For-All (Solo)</option>
-            <option value="teams">4 Alliances (Team Mode)</option>
+            <option value="teams">Team Alliances</option>
           </select>
         </div>
         <div class="setup-row">
-          <label>Arena</label>
+          <label>Arena Style</label>
           <select id="sel-arena"></select>
         </div>
         <div class="setup-row">
           <label>Your Country</label>
           <select id="sel-user-country"></select>
+        </div>
+        <div class="setup-row">
+          <label>Auto-Record Match Video</label>
+          <input type="checkbox" id="chk-autorecord" checked />
         </div>
       </div>
 
@@ -79,7 +97,7 @@
           <span class="btn-icon">👁️</span>
           <div>
             <strong>Watch Mode</strong>
-            <small>Predict Winner &amp; Watch AI War</small>
+            <small>Predict Winner &amp; Watch AI</small>
           </div>
         </button>
 
@@ -95,7 +113,7 @@
           <span class="btn-icon">🏆</span>
           <div>
             <strong>Tournament</strong>
-            <small>16/32/64/128 Group &amp; Knockout</small>
+            <small>Pick Countries &amp; Brackets</small>
           </div>
         </button>
 
@@ -103,7 +121,7 @@
           <span class="btn-icon">📊</span>
           <div>
             <strong>League Mode</strong>
-            <small>16/20/24 Table (4-3-2-1 Pts)</small>
+            <small>Full Table (W, 2nd, 1st/2nd Elim)</small>
           </div>
         </button>
 
@@ -111,7 +129,7 @@
           <span class="btn-icon">📅</span>
           <div>
             <strong>Daily Challenges</strong>
-            <small>Streaks &amp; Bonus Rewards</small>
+            <small>Streaks &amp; Bonus Coins</small>
           </div>
         </button>
 
@@ -119,7 +137,7 @@
           <span class="btn-icon">🛒</span>
           <div>
             <strong>Shop &amp; Unlocks</strong>
-            <small>Swords, Arenas &amp; Countries</small>
+            <small>Swords, Arenas &amp; Ad Rewards</small>
           </div>
         </button>
 
@@ -135,7 +153,7 @@
           <span class="btn-icon">⚙️</span>
           <div>
             <strong>Settings</strong>
-            <small>Audio, FPS &amp; AdMob Info</small>
+            <small>Audio, Crosshair &amp; AdMob</small>
           </div>
         </button>
       </div>
@@ -144,43 +162,62 @@
     <!-- WATCH MODE PREDICTION MODAL -->
     <div id="modal-predict" class="modal hidden">
       <div class="modal-card">
-        <h2>🔮 Predict the Winner!</h2>
-        <p>Tap which country you think will survive the battle to build your Prediction Streak:</p>
+        <div class="modal-header">
+          <h2>🔮 Predict the Winner!</h2>
+          <button class="close-modal" data-close="modal-predict">✕</button>
+        </div>
+        <p class="small-note">Tap the country you predict will win this match:</p>
         <div id="predict-grid" class="predict-grid"></div>
       </div>
     </div>
 
-    <!-- TOURNAMENT MODAL -->
+    <!-- TOURNAMENT MODAL (WITH COUNTRY PICKER) -->
     <div id="modal-tournament" class="modal hidden">
       <div class="modal-card wide">
         <div class="modal-header">
           <h2>🏆 World Cup Tournament</h2>
           <button class="close-modal" data-close="modal-tournament">✕</button>
         </div>
-        <div id="tourney-setup" class="tourney-setup">
-          <label>Tournament Size:</label>
+
+        <div class="tourney-setup">
+          <label>Bracket Size:</label>
           <select id="sel-tourney-size">
-            <option value="16">16 Countries (4 Groups of 4)</option>
-            <option value="32" selected>32 Countries (8 Groups of 4)</option>
+            <option value="16" selected>16 Countries (4 Groups of 4)</option>
+            <option value="32">32 Countries (8 Groups of 4)</option>
             <option value="64">64 Countries (16 Groups of 4)</option>
             <option value="128">128 Countries (32 Groups of 4)</option>
           </select>
+          <button id="btn-toggle-picker" class="action-btn secondary">🏳️ Choose Countries</button>
           <button id="btn-start-tourney" class="action-btn">Create Brackets</button>
         </div>
+
+        <!-- Country Selection Drawer for Tournament -->
+        <div id="tourney-picker-box" class="picker-box hidden">
+          <div class="picker-header">
+            <span id="picker-count-label">Selected: 16 / 16</span>
+            <div class="picker-mini-btns">
+              <button id="btn-picker-all" class="mini-btn">Select All</button>
+              <button id="btn-picker-clear" class="mini-btn">Clear</button>
+              <button id="btn-picker-random" class="mini-btn">Random Fill</button>
+            </div>
+          </div>
+          <div id="tourney-country-grid" class="picker-grid"></div>
+        </div>
+
         <div id="tourney-stage-info" class="stage-info"></div>
         <div id="tourney-brackets" class="brackets-view"></div>
         <div class="modal-actions">
-          <button id="btn-play-next-tourney" class="action-btn hidden">⚔️ Watch/Play Next Match</button>
-          <button id="btn-sim-tourney-round" class="action-btn secondary hidden">⚡ Sim Remaining Matches</button>
+          <button id="btn-play-next-tourney" class="action-btn hidden">⚔️ Watch Next Match</button>
+          <button id="btn-sim-tourney-round" class="action-btn secondary hidden">⚡ Sim Remaining Round</button>
         </div>
       </div>
     </div>
 
-    <!-- LEAGUE MODE MODAL -->
+    <!-- LEAGUE MODE MODAL (FULL STANDINGS TABLE) -->
     <div id="modal-league" class="modal hidden">
       <div class="modal-card wide">
         <div class="modal-header">
-          <h2>📊 Premier Sword League</h2>
+          <h2>📊 Sword Territory League</h2>
           <button class="close-modal" data-close="modal-league">✕</button>
         </div>
         <div class="tourney-setup">
@@ -192,7 +229,7 @@
           </select>
           <button id="btn-start-league" class="action-btn">New Season</button>
         </div>
-        <p class="small-note">4 countries per match • Winner = 4 pts, Runner-up = 3 pts, 2nd Elim = 2 pts, 1st Elim = 1 pt</p>
+        <p class="small-note">Win = 4 pts • Runner-Up = 3 pts • 2nd Eliminated = 2 pts • 1st Eliminated = 1 pt</p>
         <div id="league-fixture-info" class="stage-info"></div>
         <div class="table-scroll">
           <table class="league-table">
@@ -201,7 +238,10 @@
                 <th>#</th>
                 <th>Country</th>
                 <th>MP</th>
-                <th>W</th>
+                <th title="Wins (4 pts)">Wins</th>
+                <th title="Runner-Up (3 pts)">Runner-Up</th>
+                <th title="2nd Eliminated (2 pts)">2nd Elim</th>
+                <th title="1st Eliminated (1 pt)">1st Elim</th>
                 <th>Pts</th>
               </tr>
             </thead>
@@ -209,8 +249,8 @@
           </table>
         </div>
         <div class="modal-actions">
-          <button id="btn-play-league-match" class="action-btn hidden">⚔️ Play Next 4-Way Match</button>
-          <button id="btn-sim-league-round" class="action-btn secondary hidden">⚡ Sim Full Matchday</button>
+          <button id="btn-play-league-match" class="action-btn hidden">⚔️ Watch Next 4-Way Match</button>
+          <button id="btn-sim-league-round" class="action-btn secondary hidden">⚡ Sim Matchday (4 Matches)</button>
         </div>
       </div>
     </div>
@@ -233,7 +273,7 @@
           <h2>🛒 Unlocks &amp; Rewarded Ads</h2>
           <button class="close-modal" data-close="modal-shop">✕</button>
         </div>
-        <p class="small-note">Watch a quick Rewarded Test Ad (or spend Coins) to unlock Sword Skins, Arenas, and Bonus Countries. Never interrupts live matches!</p>
+        <p class="small-note">Watch a Rewarded Test Ad to unlock Sword Skins and Arenas. Never interrupts live matches!</p>
         <div id="shop-list" class="shop-list"></div>
       </div>
     </div>
@@ -247,28 +287,26 @@
         </div>
         <div class="form-group">
           <label>Country / City / Squad Name</label>
-          <input type="text" id="inp-custom-name" placeholder="e.g. Oran Knights" maxlength="18" />
+          <input type="text" id="inp-custom-name" placeholder="e.g. Oran Lions" maxlength="16" />
         </div>
         <div class="form-group">
-          <label>Territory Paint Color</label>
-          <input type="color" id="inp-custom-color" value="#00e5ff" />
+          <label>Soft Pastel Land Color</label>
+          <input type="color" id="inp-custom-color" value="#E05A5A" />
         </div>
         <div class="form-group">
-          <label>Special Trait</label>
+          <label>Special Ability</label>
           <select id="inp-custom-trait">
-            <option value="speed">⚡ Blitz Speed (+20% Speed)</option>
-            <option value="blade">🗡️ Giant Blade (+35% Sword Length)</option>
-            <option value="tank">🛡️ Fortress (+35 Max HP)</option>
-            <option value="regen">🌿 Rapid Turf (+50% Land Regen)</option>
-            <option value="dual">⚔️ Twin Blades (Starts with 2 Swords)</option>
+            <option value="speed">⚡ Blitz Speed (SPD 140)</option>
+            <option value="blade">🗡️ Long Sword (L 1.1)</option>
+            <option value="tank">🛡️ Extra Health (HP 7)</option>
+            <option value="dual">⚔️ Twin Swords (SWORDS 2)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Upload Flag Image (Optional)</label>
+          <label>Upload Full Circle Flag Image</label>
           <input type="file" id="inp-custom-flag" accept="image/*" />
         </div>
         <button id="btn-save-custom" class="action-btn">💾 Save Custom Country</button>
-        <div id="custom-saved-list" class="custom-list"></div>
       </div>
     </div>
 
@@ -288,30 +326,41 @@
           <input type="checkbox" id="chk-shake" checked />
         </div>
         <div class="setup-row">
-          <label>Low-End Performance Mode</label>
-          <input type="checkbox" id="chk-lowres" />
+          <label>Show Center White Crosshair</label>
+          <input type="checkbox" id="chk-crosshair" checked />
+        </div>
+        <div class="setup-row">
+          <label>Shrinking Burn Zone (Late Game)</label>
+          <input type="checkbox" id="chk-shrinkzone" checked />
         </div>
         <div class="admob-info-box">
           <strong>Google AdMob Test Mode Active</strong>
-          <p>Rewarded Ad Unit ID: <code>ca-app-pub-3940256099942544/5224354917</code></p>
+          <p>Rewarded ID: <code>ca-app-pub-3940256099942544/5224354917</code></p>
         </div>
       </div>
     </div>
 
-    <!-- MATCH RESULT & SHARE MODAL -->
+    <!-- MATCH RESULT & VIDEO PREVIEW MODAL -->
     <div id="modal-result" class="modal hidden">
       <div class="modal-card">
         <h2 id="res-title">🏆 Victory!</h2>
         <div id="res-winner-badge" class="winner-showcase"></div>
         <p id="res-prediction-text" class="res-sub"></p>
-        <div id="res-stats" class="res-stats"></div>
+
+        <!-- Recorded Video Preview Player -->
+        <div id="video-preview-box" class="video-preview-box hidden">
+          <p class="small-note">📹 Recorded Match Video Ready:</p>
+          <video id="recorded-video-preview" controls playsinline loop></video>
+        </div>
+
         <div class="modal-actions">
-          <button id="btn-share-video" class="action-btn share-btn">📤 Record / Share Match Video</button>
+          <button id="btn-share-video" class="action-btn share-btn">📤 Share / Download Video</button>
           <button id="btn-watch-ad-bonus" class="action-btn ad-btn">🎬 Watch Ad (+100 Coins)</button>
           <button id="btn-result-continue" class="action-btn">Continue</button>
         </div>
       </div>
     </div>
+
   </div>
 
   <script src="game.js"></script>
