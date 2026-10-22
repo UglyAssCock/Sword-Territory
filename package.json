@@ -1,0 +1,15 @@
+{
+  "name": "sword-territory",
+  "version": "1.0.0",
+  "description": "Sword Territory - Country Flag Balls Paint War & Sword Arena",
+  "main": "www/index.html",
+  "scripts": {
+    "build": "echo 'Static files ready in www'"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.1.2",
+    "@capacitor/cli": "6.1.2",
+    "@capacitor/core": "6.1.2",
+    "@capacitor-community/admob": "6.0.0"
+  }
+}
