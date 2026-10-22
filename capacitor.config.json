@@ -1,0 +1,9 @@
+{
+  "appId": "com.swordterritory.game",
+  "appName": "Sword Territory",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
