@@ -1,7 +1,9 @@
 /* ============================================================================
- * SWORD TERRITORY: BLADE & BORDER - FULL MOBILE ENGINE
- * Low-res Uint8Array paint grid, 60 FPS cap, Web Audio synth, Canvas Recorder,
- * Watch & Play Modes, 16-128 Tournament, 16-24 League, Google AdMob Test Ads.
+ * SWORD TERRITORY — VIRAL SQUARE ARENA EDITION
+ * - Full-bleed circular vector flag textures for every country
+ * - 4-Quadrant Pre-Painted Square Arena (Turkey, USA, Brazil, Germany)
+ * - Live Colored HUD Cards (HP 5, AREA 25.0%, SWORDS 1 L 0.8, SPD 125, BARRACKS NO)
+ * - Tournament Country Picker + Full League Standings + Composite Video Recorder
  * ============================================================================ */
 
 const ADMOB_TEST_IDS = {
@@ -9,57 +11,274 @@ const ADMOB_TEST_IDS = {
   REWARDED_ID: "ca-app-pub-3940256099942544/5224354917"
 };
 
-// 32 Built-in Countries with Iconic Colors, Emojis & Special Abilities
+// First 4 countries match the exact reference quadrants & pastel colors:
+// Top-Left: Turkey (#E05A5A), Top-Right: USA (#6A85D6), Bottom-Left: Brazil (#72BB7E), Bottom-Right: Germany (#8E8A8F)
 const DEFAULT_COUNTRIES = [
-  { id: "dz", name: "Algeria", flag: "🇩🇿", color: "#10b981", bands: ["#10b981", "#ffffff", "#ef4444"], trait: "speed", traitName: "Desert Blitz (+18% Speed)" },
-  { id: "br", name: "Brazil", flag: "🇧🇷", color: "#22c55e", bands: ["#22c55e", "#facc15", "#1d4ed8"], trait: "regen", traitName: "Jungle Turf (2x Land Heal)" },
-  { id: "jp", name: "Japan", flag: "🇯🇵", color: "#f43f5e", bands: ["#ffffff", "#e11d48", "#ffffff"], trait: "blade", traitName: "Katana Master (Long Blade)" },
-  { id: "us", name: "USA", flag: "🇺🇸", color: "#3b82f6", bands: ["#1d4ed8", "#ffffff", "#ef4444"], trait: "shield", traitName: "Aegis Drop (Starts Shielded)" },
-  { id: "de", name: "Germany", flag: "🇩🇪", color: "#eab308", bands: ["#171717", "#dc2626", "#facc15"], trait: "tank", traitName: "Iron Hull (+35 Max HP)" },
-  { id: "fr", name: "France", flag: "🇫🇷", color: "#6366f1", bands: ["#1d4ed8", "#ffffff", "#ef4444"], trait: "dual", traitName: "Twin Rapier (2 Swords)" },
-  { id: "gb", name: "UK", flag: "🇬🇧", color: "#ef4444", bands: ["#1e3a8a", "#ffffff", "#dc2626"], trait: "knock", traitName: "Royal Guard (Heavy Bash)" },
-  { id: "tr", name: "Turkey", flag: "🇹🇷", color: "#dc2626", bands: ["#dc2626", "#ffffff", "#dc2626"], trait: "fury", traitName: "Janissary Fury (Low-HP Rage)" },
-  { id: "it", name: "Italy", flag: "🇮🇹", color: "#14b8a6", bands: ["#16a34a", "#ffffff", "#dc2626"], trait: "speed", traitName: "Centurion Sprint" },
-  { id: "es", name: "Spain", flag: "🇪🇸", color: "#f97316", bands: ["#dc2626", "#facc15", "#dc2626"], trait: "blade", traitName: "Toledo Steel" },
-  { id: "ar", name: "Argentina", flag: "🇦🇷", color: "#38bdf8", bands: ["#38bdf8", "#ffffff", "#38bdf8"], trait: "speed", traitName: "Pampas Dash" },
-  { id: "kr", name: "South Korea", flag: "🇰🇷", color: "#a855f7", bands: ["#ffffff", "#ef4444", "#2563eb"], trait: "dual", traitName: "Twin Hwarang" },
-  { id: "mx", name: "Mexico", flag: "🇲🇽", color: "#84cc16", bands: ["#15803d", "#ffffff", "#b91c1c"], trait: "regen", traitName: "Eagle Spirit" },
-  { id: "eg", name: "Egypt", flag: "🇪🇬", color: "#d97706", bands: ["#dc2626", "#ffffff", "#171717"], trait: "tank", traitName: "Pharaoh Armor" },
-  { id: "ma", name: "Morocco", flag: "🇲🇦", color: "#e11d48", bands: ["#b91c1c", "#15803d", "#b91c1c"], trait: "speed", traitName: "Atlas Strider" },
-  { id: "sa", name: "Saudi Arabia", flag: "🇸🇦", color: "#059669", bands: ["#15803d", "#ffffff", "#15803d"], trait: "blade", traitName: "Scimitar Reach" },
-  { id: "ca", name: "Canada", flag: "🇨🇦", color: "#fb7185", bands: ["#dc2626", "#ffffff", "#dc2626"], trait: "tank", traitName: "Northern Shield" },
-  { id: "in", name: "India", flag: "🇮🇳", color: "#fb923c", bands: ["#f97316", "#ffffff", "#16a34a"], trait: "regen", traitName: "Chakram Vitality" },
-  { id: "cn", name: "China", flag: "🇨🇳", color: "#b91c1c", bands: ["#dc2626", "#facc15", "#dc2626"], trait: "fury", traitName: "Dragon Might" },
-  { id: "au", name: "Australia", flag: "🇦🇺", color: "#0ea5e9", bands: ["#1e3a8a", "#ffffff", "#ef4444"], trait: "speed", traitName: "Outback Runner" },
-  { id: "ng", name: "Nigeria", flag: "🇳🇬", color: "#4ade80", bands: ["#16a34a", "#ffffff", "#16a34a"], trait: "speed", traitName: "Super Falcon" },
-  { id: "se", name: "Sweden", flag: "🇸🇪", color: "#facc15", bands: ["#0284c7", "#facc15", "#0284c7"], trait: "tank", traitName: "Viking Frost" },
-  { id: "pl", name: "Poland", flag: "🇵🇱", color: "#f472b6", bands: ["#ffffff", "#dc2626", "#ffffff"], trait: "fury", traitName: "Winged Hussar" },
-  { id: "nl", name: "Netherlands", flag: "🇳🇱", color: "#fb923c", bands: ["#dc2626", "#ffffff", "#1d4ed8"], trait: "regen", traitName: "Polder Expansion" },
-  { id: "pt", name: "Portugal", flag: "🇵🇹", color: "#ef4444", bands: ["#15803d", "#dc2626", "#facc15"], trait: "blade", traitName: "Navigator Edge" },
-  { id: "ZA", name: "South Africa", flag: "🇿🇦", color: "#10b981", bands: ["#dc2626", "#16a34a", "#1d4ed8"], trait: "tank", traitName: "Springbok Tough" },
-  { id: "tn", name: "Tunisia", flag: "🇹🇳", color: "#f87171", bands: ["#dc2626", "#ffffff", "#dc2626"], trait: "speed", traitName: "Carthage Rush" },
-  { id: "sn", name: "Senegal", flag: "🇸🇳", color: "#a3e635", bands: ["#16a34a", "#facc15", "#dc2626"], trait: "fury", traitName: "Teranga Lion" },
-  { id: "id", name: "Indonesia", flag: "🇮🇩", color: "#fca5a5", bands: ["#dc2626", "#ffffff", "#dc2626"], trait: "speed", traitName: "Garuda Dash" },
-  { id: "PK", name: "Pakistan", flag: "🇵🇰", color: "#34d399", bands: ["#065f46", "#ffffff", "#065f46"], trait: "blade", traitName: "Crescent Steel" },
-  { id: "gr", name: "Greece", flag: "🇬🇷", color: "#60a5fa", bands: ["#0284c7", "#ffffff", "#0284c7"], trait: "shield", traitName: "Spartan Phalanx" },
-  { id: "no", name: "Norway", flag: "🇳🇴", color: "#c084fc", bands: ["#dc2626", "#1e3a8a", "#ffffff"], trait: "knock", traitName: "Fjord Breaker" }
+  { id: "tr", name: "Turkey", color: "#E05A5A", trait: "fury", traitName: "Crimson Edge" },
+  { id: "us", name: "USA", color: "#6A85D6", trait: "speed", traitName: "Liberty Blitz" },
+  { id: "br", name: "Brazil", color: "#72BB7E", trait: "regen", traitName: "Amazon Turf" },
+  { id: "de", name: "Germany", color: "#8E8A8F", trait: "tank", traitName: "Iron Guard" },
+  { id: "dz", name: "Algeria", color: "#58B388", trait: "speed", traitName: "Desert Fox" },
+  { id: "jp", name: "Japan", color: "#E57388", trait: "blade", traitName: "Katana Reach" },
+  { id: "fr", name: "France", color: "#6E85D8", trait: "dual", traitName: "Twin Rapier" },
+  { id: "gb", name: "UK", color: "#D66874", trait: "tank", traitName: "Royal Shield" },
+  { id: "it", name: "Italy", color: "#5CB895", trait: "speed", traitName: "Centurion" },
+  { id: "es", name: "Spain", color: "#E29058", trait: "blade", traitName: "Toledo Blade" },
+  { id: "ar", name: "Argentina", color: "#6CB8E6", trait: "speed", traitName: "Albiceleste" },
+  { id: "kr", name: "South Korea", color: "#9C78D8", trait: "dual", traitName: "Hwarang" },
+  { id: "mx", name: "Mexico", color: "#6AB065", trait: "regen", traitName: "Aztec Vitality" },
+  { id: "eg", name: "Egypt", color: "#CFA058", trait: "tank", traitName: "Pharaoh Guard" },
+  { id: "ma", name: "Morocco", color: "#D45D6E", trait: "speed", traitName: "Atlas Lion" },
+  { id: "sa", name: "Saudi Arabia", color: "#54A878", trait: "blade", traitName: "Scimitar" },
+  { id: "ca", name: "Canada", color: "#E07582", trait: "tank", traitName: "Maple Fortress" },
+  { id: "in", name: "India", color: "#E29A5C", trait: "regen", traitName: "Chakram" },
+  { id: "cn", name: "China", color: "#D85C5C", trait: "fury", traitName: "Dragon Might" },
+  { id: "au", name: "Australia", color: "#589CD6", trait: "speed", traitName: "Outback Dash" },
+  { id: "ng", name: "Nigeria", color: "#62B87A", trait: "speed", traitName: "Super Eagle" },
+  { id: "se", name: "Sweden", color: "#D9BD58", trait: "tank", traitName: "Nordic Armor" },
+  { id: "pl", name: "Poland", color: "#DF789A", trait: "fury", traitName: "Winged Hussar" },
+  { id: "nl", name: "Netherlands", color: "#E28A58", trait: "regen", traitName: "Oranje Surge" },
+  { id: "pt", name: "Portugal", color: "#D66464", trait: "blade", traitName: "Navigator" },
+  { id: "za", name: "South Africa", color: "#5EB58C", trait: "tank", traitName: "Springbok" },
+  { id: "tn", name: "Tunisia", color: "#E26C6C", trait: "speed", traitName: "Carthage" },
+  { id: "sn", name: "Senegal", color: "#92C458", trait: "fury", traitName: "Teranga" },
+  { id: "id", name: "Indonesia", color: "#E07E7E", trait: "speed", traitName: "Garuda" },
+  { id: "pk", name: "Pakistan", color: "#529E76", trait: "blade", traitName: "Crescent Blade" },
+  { id: "gr", name: "Greece", color: "#68A4E0", trait: "tank", traitName: "Spartan" },
+  { id: "no", name: "Norway", color: "#A67CD8", trait: "blade", traitName: "Viking Axe" }
 ];
 
 const ARENAS = [
-  { id: "meadow", name: "Classic Meadow (4 Pillars)", unlocked: true, cost: 0 },
-  { id: "labyrinth", name: "Labyrinth Ruins (Maze Walls)", unlocked: true, cost: 0 },
-  { id: "volcano", name: "Volcanic Ring (Center Lava Hazard)", unlocked: false, cost: 150 },
-  { id: "bridges", name: "Twin Bridges (Chokepoints)", unlocked: false, cost: 200 }
+  { id: "classic", name: "Reference Square (Clean Open)", unlocked: true, cost: 0 },
+  { id: "pillars", name: "Four Corner Pillars", unlocked: true, cost: 0 },
+  { id: "volcano", name: "Center Lava Core", unlocked: false, cost: 150 },
+  { id: "labyrinth", name: "Twin Walls Arena", unlocked: false, cost: 200 }
 ];
 
 const SWORD_SKINS = [
-  { id: "steel", name: "Classic Steel", color: "#e2e8f0", glow: "#94a3b8", unlocked: true, cost: 0 },
-  { id: "crimson", name: "Crimson Katana", color: "#f43f5e", glow: "#e11d48", unlocked: false, cost: 100 },
-  { id: "cyber", name: "Cyber Neon", color: "#00f5d4", glow: "#00bbf9", unlocked: false, cost: 150 },
-  { id: "royal", name: "Royal Gold", color: "#fde047", glow: "#eab308", unlocked: false, cost: 200 }
+  { id: "steel", name: "Classic White Steel", color: "#ffffff", edge: "#cbd5e1", unlocked: true, cost: 0 },
+  { id: "crimson", name: "Crimson Katana", color: "#ff4d6d", edge: "#fde047", unlocked: false, cost: 100 },
+  { id: "cyber", name: "Cyber Neon Blade", color: "#00f5d4", edge: "#ffffff", unlocked: false, cost: 150 },
+  { id: "gold", name: "Golden Excalibur", color: "#fde047", edge: "#f59e0b", unlocked: false, cost: 200 }
 ];
 
-/* --- PROCEDURAL WEB AUDIO SYNTHESIZER (NO COPYRIGHTED AUDIO) --- */
+/* ============================================================================
+ * FULL-CIRCLE FLAG TEXTURE GENERATOR (100% Full Circle Flag Art, No Tiny Emoji)
+ * ============================================================================ */
+const flagCanvasCache = {};
+const flagDataUrlCache = {};
+
+function drawStar(g, cx, cy, spikes, outerR, innerR, color) {
+  let rot = (Math.PI / 2) * 3;
+  const step = Math.PI / spikes;
+  g.beginPath();
+  g.moveTo(cx, cy - outerR);
+  for (let i = 0; i < spikes; i++) {
+    g.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+    rot += step;
+    g.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+    rot += step;
+  }
+  g.closePath();
+  g.fillStyle = color;
+  g.fill();
+}
+
+function drawHorizontalStripes(g, s, colors) {
+  const h = s / colors.length;
+  colors.forEach((c, i) => {
+    g.fillStyle = c;
+    g.fillRect(0, i * h, s, h + 1);
+  });
+}
+
+function drawVerticalStripes(g, s, colors) {
+  const w = s / colors.length;
+  colors.forEach((c, i) => {
+    g.fillStyle = c;
+    g.fillRect(i * w, 0, w + 1, s);
+  });
+}
+
+function generateCountryFlagCanvas(country) {
+  const s = 128;
+  const c = document.createElement("canvas");
+  c.width = s;
+  c.height = s;
+  const g = c.getContext("2d");
+  const id = country.id;
+
+  // Fill base
+  g.fillStyle = country.color || "#E05A5A";
+  g.fillRect(0, 0, s, s);
+
+  if (id === "tr") {
+    // Turkey: Full crimson red + white crescent & star
+    g.fillStyle = "#E30A17";
+    g.fillRect(0, 0, s, s);
+    g.fillStyle = "#ffffff";
+    g.beginPath(); g.arc(s * 0.43, s * 0.5, s * 0.25, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#E30A17";
+    g.beginPath(); g.arc(s * 0.49, s * 0.5, s * 0.20, 0, Math.PI * 2); g.fill();
+    drawStar(g, s * 0.70, s * 0.5, 5, s * 0.11, s * 0.045, "#ffffff");
+  } else if (id === "us") {
+    // USA: 13 red & white stripes + blue star canton
+    for (let i = 0; i < 13; i++) {
+      g.fillStyle = i % 2 === 0 ? "#B22234" : "#ffffff";
+      g.fillRect(0, (i * s) / 13, s, s / 13 + 1);
+    }
+    g.fillStyle = "#3C3B6E";
+    g.fillRect(0, 0, s * 0.52, s * 0.54);
+    for (let r = 0; r < 4; r++) {
+      for (let col = 0; col < 4; col++) {
+        drawStar(g, 10 + col * 15, 10 + r * 15, 5, 4.5, 2, "#ffffff");
+      }
+    }
+  } else if (id === "br") {
+    // Brazil: Full green + yellow diamond + blue globe & white band
+    g.fillStyle = "#009B3A";
+    g.fillRect(0, 0, s, s);
+    g.fillStyle = "#FEDF00";
+    g.beginPath();
+    g.moveTo(s * 0.5, s * 0.12);
+    g.lineTo(s * 0.88, s * 0.5);
+    g.lineTo(s * 0.5, s * 0.88);
+    g.lineTo(s * 0.12, s * 0.5);
+    g.closePath();
+    g.fill();
+    g.fillStyle = "#002776";
+    g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.21, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "#ffffff";
+    g.lineWidth = 5;
+    g.beginPath();
+    g.arc(s * 0.48, s * 0.68, s * 0.26, -Math.PI * 0.78, -Math.PI * 0.22);
+    g.stroke();
+  } else if (id === "de") {
+    // Germany: Black, Red, Gold horizontal tricolor
+    drawHorizontalStripes(g, s, ["#111111", "#DD0000", "#FFCE00"]);
+  } else if (id === "dz") {
+    // Algeria: Vertical Green/White + Red Crescent & Star
+    drawVerticalStripes(g, s, ["#006233", "#ffffff"]);
+    g.fillStyle = "#D21034";
+    g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.25, 0, Math.PI * 2); g.fill();
+    g.save();
+    g.beginPath(); g.arc(s * 0.56, s * 0.5, s * 0.20, 0, Math.PI * 2); g.clip();
+    drawVerticalStripes(g, s, ["#006233", "#ffffff"]);
+    g.restore();
+    drawStar(g, s * 0.58, s * 0.5, 5, s * 0.11, s * 0.045, "#D21034");
+  } else if (id === "jp") {
+    g.fillStyle = "#ffffff"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#BC002D"; g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.28, 0, Math.PI * 2); g.fill();
+  } else if (id === "fr") {
+    drawVerticalStripes(g, s, ["#002395", "#ffffff", "#ED2939"]);
+  } else if (id === "gb") {
+    g.fillStyle = "#012169"; g.fillRect(0, 0, s, s);
+    g.strokeStyle = "#ffffff"; g.lineWidth = 18;
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(s, s); g.moveTo(s, 0); g.lineTo(0, s); g.stroke();
+    g.strokeStyle = "#C8102E"; g.lineWidth = 8;
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(s, s); g.moveTo(s, 0); g.lineTo(0, s); g.stroke();
+    g.fillStyle = "#ffffff"; g.fillRect(s * 0.38, 0, s * 0.24, s); g.fillRect(0, s * 0.38, s, s * 0.24);
+    g.fillStyle = "#C8102E"; g.fillRect(s * 0.43, 0, s * 0.14, s); g.fillRect(0, s * 0.43, s, s * 0.14);
+  } else if (id === "it") {
+    drawVerticalStripes(g, s, ["#009246", "#ffffff", "#CE2B37"]);
+  } else if (id === "es") {
+    drawHorizontalStripes(g, s, ["#AA151B", "#F1BF00", "#F1BF00", "#AA151B"]);
+  } else if (id === "ar") {
+    drawHorizontalStripes(g, s, ["#74ACDF", "#ffffff", "#74ACDF"]);
+    drawStar(g, s * 0.5, s * 0.5, 8, s * 0.12, s * 0.06, "#F6B40E");
+  } else if (id === "kr") {
+    g.fillStyle = "#ffffff"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#CD2E3A"; g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.24, Math.PI, 0); g.fill();
+    g.fillStyle = "#0047A0"; g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.24, 0, Math.PI); g.fill();
+  } else if (id === "mx") {
+    drawVerticalStripes(g, s, ["#006847", "#ffffff", "#CE1126"]);
+    g.fillStyle = "#8B5A2B"; g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.1, 0, Math.PI * 2); g.fill();
+  } else if (id === "eg") {
+    drawHorizontalStripes(g, s, ["#CE1126", "#ffffff", "#000000"]);
+    drawStar(g, s * 0.5, s * 0.5, 5, s * 0.1, s * 0.05, "#C09300");
+  } else if (id === "ma") {
+    g.fillStyle = "#C1272D"; g.fillRect(0, 0, s, s);
+    drawStar(g, s * 0.5, s * 0.5, 5, s * 0.22, s * 0.09, "#006233");
+  } else if (id === "sa") {
+    g.fillStyle = "#006C35"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#ffffff"; g.fillRect(s * 0.22, s * 0.62, s * 0.56, 7);
+  } else if (id === "ca") {
+    drawVerticalStripes(g, s, ["#FF0000", "#ffffff", "#ffffff", "#FF0000"]);
+    drawStar(g, s * 0.5, s * 0.5, 5, s * 0.20, s * 0.09, "#FF0000");
+  } else if (id === "in") {
+    drawHorizontalStripes(g, s, ["#FF9933", "#ffffff", "#138808"]);
+    g.strokeStyle = "#000080"; g.lineWidth = 4;
+    g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.11, 0, Math.PI * 2); g.stroke();
+  } else if (id === "cn") {
+    g.fillStyle = "#EE1C25"; g.fillRect(0, 0, s, s);
+    drawStar(g, s * 0.32, s * 0.38, 5, s * 0.15, s * 0.06, "#FFFF00");
+  } else if (id === "ng") {
+    drawVerticalStripes(g, s, ["#008751", "#ffffff", "#008751"]);
+  } else if (id === "se") {
+    g.fillStyle = "#006AA7"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#FECC02"; g.fillRect(s * 0.32, 0, s * 0.16, s); g.fillRect(0, s * 0.42, s, s * 0.16);
+  } else if (id === "pl") {
+    drawHorizontalStripes(g, s, ["#ffffff", "#DC143C"]);
+  } else if (id === "nl") {
+    drawHorizontalStripes(g, s, ["#AE1C28", "#ffffff", "#21468B"]);
+  } else if (id === "pt") {
+    drawVerticalStripes(g, s, ["#006600", "#FF0000", "#FF0000"]);
+    g.fillStyle = "#FFFF00"; g.beginPath(); g.arc(s * 0.35, s * 0.5, s * 0.13, 0, Math.PI * 2); g.fill();
+  } else if (id === "tn") {
+    g.fillStyle = "#E70013"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#ffffff"; g.beginPath(); g.arc(s * 0.5, s * 0.5, s * 0.25, 0, Math.PI * 2); g.fill();
+    drawStar(g, s * 0.53, s * 0.5, 5, s * 0.12, s * 0.05, "#E70013");
+  } else if (id === "sn") {
+    drawVerticalStripes(g, s, ["#00853F", "#FDEF42", "#E31B23"]);
+    drawStar(g, s * 0.5, s * 0.5, 5, s * 0.12, s * 0.05, "#00853F");
+  } else if (id === "id") {
+    drawHorizontalStripes(g, s, ["#FF0000", "#ffffff"]);
+  } else if (id === "pk") {
+    g.fillStyle = "#01411C"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#ffffff"; g.fillRect(0, 0, s * 0.24, s);
+    g.beginPath(); g.arc(s * 0.6, s * 0.5, s * 0.22, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#01411C"; g.beginPath(); g.arc(s * 0.65, s * 0.46, s * 0.18, 0, Math.PI * 2); g.fill();
+  } else if (id === "gr") {
+    for (let i = 0; i < 9; i++) {
+      g.fillStyle = i % 2 === 0 ? "#0D5EAF" : "#ffffff";
+      g.fillRect(0, (i * s) / 9, s, s / 9 + 1);
+    }
+    g.fillStyle = "#0D5EAF"; g.fillRect(0, 0, s * 0.45, s * 0.55);
+    g.fillStyle = "#ffffff"; g.fillRect(s * 0.18, 0, s * 0.09, s * 0.55); g.fillRect(0, s * 0.22, s * 0.45, s * 0.1);
+  } else if (id === "no") {
+    g.fillStyle = "#BA0C2F"; g.fillRect(0, 0, s, s);
+    g.fillStyle = "#ffffff"; g.fillRect(s * 0.3, 0, s * 0.2, s); g.fillRect(0, s * 0.4, s, s * 0.2);
+    g.fillStyle = "#00205B"; g.fillRect(s * 0.34, 0, s * 0.12, s); g.fillRect(0, s * 0.44, s, s * 0.12);
+  } else {
+    drawHorizontalStripes(g, s, [country.color, "#ffffff", country.color]);
+  }
+
+  return c;
+}
+
+function buildAllFlagCaches() {
+  getAllCountries().forEach(c => {
+    if (c.imgData) {
+      const can = document.createElement("canvas");
+      can.width = 128; can.height = 128;
+      const g = can.getContext("2d");
+      const img = new Image();
+      img.onload = () => {
+        g.drawImage(img, 0, 0, 128, 128);
+        flagDataUrlCache[c.id] = can.toDataURL();
+      };
+      img.src = c.imgData;
+      flagCanvasCache[c.id] = can;
+      flagDataUrlCache[c.id] = c.imgData;
+    } else if (!flagCanvasCache[c.id]) {
+      const can = generateCountryFlagCanvas(c);
+      flagCanvasCache[c.id] = can;
+      flagDataUrlCache[c.id] = can.toDataURL();
+    }
+  });
+}
+
+/* --- WEB AUDIO SYNTHESIZER --- */
 class SoundFX {
   constructor() {
     this.ctx = null;
@@ -84,62 +303,46 @@ class SoundFX {
 
     if (type === "clash") {
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(920, now);
-      osc.frequency.exponentialRampToValueAtTime(280, now + 0.09);
-      gain.gain.setValueAtTime(0.18, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-      osc.start(now);
-      osc.stop(now + 0.09);
+      osc.frequency.setValueAtTime(950, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+      gain.gain.setValueAtTime(0.16, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now); osc.stop(now + 0.08);
     } else if (type === "break") {
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(520, now);
-      osc.frequency.exponentialRampToValueAtTime(90, now + 0.22);
-      gain.gain.setValueAtTime(0.26, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-      osc.start(now);
-      osc.stop(now + 0.22);
+      osc.frequency.setValueAtTime(480, now);
+      osc.frequency.exponentialRampToValueAtTime(85, now + 0.2);
+      gain.gain.setValueAtTime(0.24, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now); osc.stop(now + 0.2);
     } else if (type === "hit") {
       osc.type = "sine";
-      osc.frequency.setValueAtTime(190, now);
-      osc.frequency.exponentialRampToValueAtTime(55, now + 0.12);
-      gain.gain.setValueAtTime(0.24, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-      osc.start(now);
-      osc.stop(now + 0.12);
+      osc.frequency.setValueAtTime(210, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.11);
+      gain.gain.setValueAtTime(0.22, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+      osc.start(now); osc.stop(now + 0.11);
     } else if (type === "powerup") {
       osc.type = "sine";
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.16);
-      gain.gain.setValueAtTime(0.16, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
-      osc.start(now);
-      osc.stop(now + 0.16);
-    } else if (type === "siren") {
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(340, now);
-      osc.frequency.linearRampToValueAtTime(680, now + 0.25);
-      osc.frequency.linearRampToValueAtTime(340, now + 0.5);
-      gain.gain.setValueAtTime(0.18, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-      osc.start(now);
-      osc.stop(now + 0.5);
+      osc.frequency.setValueAtTime(460, now);
+      osc.frequency.exponentialRampToValueAtTime(920, now + 0.15);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now); osc.stop(now + 0.15);
     } else if (type === "win") {
       [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
         const o = this.ctx.createOscillator();
         const g = this.ctx.createGain();
         o.type = "triangle";
-        o.frequency.setValueAtTime(freq, now + idx * 0.1);
-        g.gain.setValueAtTime(0.18, now + idx * 0.1);
-        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.25);
-        o.connect(g);
-        g.connect(this.ctx.destination);
-        o.start(now + idx * 0.1);
-        o.stop(now + idx * 0.1 + 0.25);
+        o.frequency.setValueAtTime(freq, now + idx * 0.09);
+        g.gain.setValueAtTime(0.16, now + idx * 0.09);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.22);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(now + idx * 0.09); o.stop(now + idx * 0.09 + 0.22);
       });
     }
   }
 }
-
 const sfx = new SoundFX();
 
 /* --- PERSISTENT SAVE STATE --- */
@@ -147,7 +350,7 @@ const SaveData = {
   coins: 100,
   streak: 0,
   equippedSkin: "steel",
-  unlockedArenas: ["meadow", "labyrinth"],
+  unlockedArenas: ["classic", "pillars"],
   unlockedSkins: ["steel"],
   customCountries: [],
   daily: [
@@ -157,13 +360,13 @@ const SaveData = {
   ],
   load() {
     try {
-      const raw = localStorage.getItem("sword_territory_save_v1");
+      const raw = localStorage.getItem("sword_territory_save_v2");
       if (raw) Object.assign(this, JSON.parse(raw));
     } catch (e) {}
   },
   save() {
     try {
-      localStorage.setItem("sword_territory_save_v1", JSON.stringify({
+      localStorage.setItem("sword_territory_save_v2", JSON.stringify({
         coins: this.coins,
         streak: this.streak,
         equippedSkin: this.equippedSkin,
@@ -178,33 +381,17 @@ const SaveData = {
 };
 SaveData.load();
 
-// Preload custom flag images
-const customFlagImages = {};
-function cacheCustomImages() {
-  SaveData.customCountries.forEach(c => {
-    if (c.imgData && !customFlagImages[c.id]) {
-      const img = new Image();
-      img.src = c.imgData;
-      customFlagImages[c.id] = img;
-    }
-  });
-}
-cacheCustomImages();
-
 function getAllCountries() {
   return [...SaveData.customCountries, ...DEFAULT_COUNTRIES];
 }
+buildAllFlagCaches();
 
-/* --- GOOGLE ADMOB CAPACITOR INTEGRATION (WITH TEST IDS) --- */
+/* --- GOOGLE ADMOB CAPACITOR INTEGRATION --- */
 async function initAdMob() {
   try {
     const AdMob = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob;
-    if (AdMob) {
-      await AdMob.initialize({ initializeForTesting: true });
-    }
-  } catch (err) {
-    console.log("AdMob running in Web/Fallback mode:", err);
-  }
+    if (AdMob) await AdMob.initialize({ initializeForTesting: true });
+  } catch (e) {}
 }
 initAdMob();
 
@@ -212,108 +399,219 @@ async function showRewardedAd(onReward) {
   try {
     const AdMob = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob;
     if (AdMob) {
-      await AdMob.prepareRewardVideoAd({
-        adId: ADMOB_TEST_IDS.REWARDED_ID,
-        isTesting: true
-      });
+      await AdMob.prepareRewardVideoAd({ adId: ADMOB_TEST_IDS.REWARDED_ID, isTesting: true });
       const rewardItem = await AdMob.showRewardVideoAd();
-      if (rewardItem) {
-        onReward();
-        return;
-      }
+      if (rewardItem) { onReward(); return; }
     }
-  } catch (e) {
-    console.log("Fallback test ad triggered:", e);
-  }
-  // Browser or offline fallback simulated 3-second test ad
-  const banner = document.getElementById("hud-banner");
-  banner.textContent = "🎬 Playing Google AdMob Test Rewarded Ad (3s)...";
-  banner.classList.remove("hidden");
-  setTimeout(() => {
-    banner.classList.add("hidden");
-    onReward();
-  }, 2200);
+  } catch (e) {}
+  showBanner("🎬 Playing Google AdMob Test Ad (2s)...");
+  setTimeout(() => onReward(), 2000);
 }
 
-/* --- CANVAS VIDEO RECORDER ("RECORD AND SHARE") --- */
+/* ============================================================================
+ * COMPOSITE VIDEO RECORDER (Captures Title + 4 HUD Cards + Square Arena!)
+ * ============================================================================ */
+const recCanvas = document.createElement("canvas");
+recCanvas.width = 540;
+recCanvas.height = 840;
+const recCtx = recCanvas.getContext("2d");
+
 let mediaRecorder = null;
 let recordedChunks = [];
 let lastRecordedBlob = null;
+let lastRecordedMime = "video/webm";
+let isRecordingActive = false;
 
-function toggleRecording() {
-  const btn = document.getElementById("btn-record-toggle");
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-    btn.classList.remove("recording");
-    btn.textContent = "⏺ Rec";
-    return;
+function getSupportedMimeType() {
+  if (typeof MediaRecorder === "undefined") return null;
+  const types = [
+    "video/mp4",
+    "video/webm;codecs=vp9",
+    "video/webm;codecs=vp8",
+    "video/webm"
+  ];
+  for (const t of types) {
+    if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) return t;
   }
+  return "";
+}
+
+function renderCompositeRecordingFrame() {
+  if (!isRecordingActive) return;
+  const w = recCanvas.width;
+  const h = recCanvas.height;
+
+  // 1. Dark background
+  recCtx.fillStyle = "#07080c";
+  recCtx.fillRect(0, 0, w, h);
+
+  // 2. Title & Subtitle
+  recCtx.fillStyle = "#ffffff";
+  recCtx.font = "900 28px sans-serif";
+  recCtx.textAlign = "center";
+  recCtx.fillText("SWORD TERRITORY", w / 2, 46);
+
+  recCtx.fillStyle = "#d1d5db";
+  recCtx.font = "800 13px sans-serif";
+  recCtx.fillText("PAINT LAND • BREAK SWORDS • BE THE LAST", w / 2, 68);
+
+  // 3. Draw top 4 HUD cards on recording canvas
+  const cards = gameState.players.slice(0, 4);
+  const cardW = (w - 36 - 18) / 4;
+  const cardH = 88;
+  cards.forEach((p, idx) => {
+    const cx = 18 + idx * (cardW + 6);
+    const cy = 84;
+    recCtx.save();
+    if (!p.alive) recCtx.globalAlpha = 0.35;
+    recCtx.fillStyle = p.color;
+    recCtx.fillRect(cx, cy, cardW, cardH);
+    recCtx.strokeStyle = "rgba(255,255,255,0.4)";
+    recCtx.lineWidth = 1.5;
+    recCtx.strokeRect(cx, cy, cardW, cardH);
+
+    // Circular flag
+    const flagCan = flagCanvasCache[p.id];
+    if (flagCan) {
+      recCtx.save();
+      recCtx.beginPath();
+      recCtx.arc(cx + 14, cy + 15, 9, 0, Math.PI * 2);
+      recCtx.clip();
+      recCtx.drawImage(flagCan, cx + 5, cy + 6, 18, 18);
+      recCtx.restore();
+    }
+
+    recCtx.fillStyle = "#ffffff";
+    recCtx.textAlign = "left";
+    recCtx.font = "900 12px sans-serif";
+    recCtx.fillText(p.name.slice(0, 9), cx + 27, cy + 19);
+
+    recCtx.font = "800 10px sans-serif";
+    recCtx.fillText(`HP ${Math.ceil(p.hp)}  AREA ${p.areaPct.toFixed(1)}%`, cx + 6, cy + 38);
+    recCtx.fillText(`SWORDS ${p.swords}  L ${p.swordL.toFixed(1)}`, cx + 6, cy + 53);
+    recCtx.fillText(`SPD ${Math.round(p.spdStat)}`, cx + 6, cy + 68);
+    recCtx.fillText(`BARRACKS ${p.barracks > 0 ? "YES" : "NO"}`, cx + 6, cy + 82);
+    recCtx.restore();
+  });
+
+  // 4. Draw Square Arena with golden border
+  const arenaSize = 504;
+  const ax = (w - arenaSize) / 2;
+  const ay = 192;
+  recCtx.drawImage(canvas, ax, ay, arenaSize, arenaSize);
+  recCtx.strokeStyle = "#f59e0b";
+  recCtx.lineWidth = 4;
+  recCtx.strokeRect(ax, ay, arenaSize, arenaSize);
+}
+
+function startRecording() {
+  if (isRecordingActive) return;
+  const btn = document.getElementById("btn-record-toggle");
   try {
-    const stream = canvas.captureStream(30);
+    const stream = recCanvas.captureStream ? recCanvas.captureStream(30) : canvas.captureStream(30);
     recordedChunks = [];
-    mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+    const mime = getSupportedMimeType();
+    lastRecordedMime = mime || "video/webm";
+    mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+
     mediaRecorder.ondataavailable = e => {
       if (e.data && e.data.size > 0) recordedChunks.push(e.data);
     };
     mediaRecorder.onstop = () => {
-      lastRecordedBlob = new Blob(recordedChunks, { type: "video/webm" });
-      showBanner("📹 Match Video Ready! Tap Share at Match End.");
+      if (recordedChunks.length > 0) {
+        lastRecordedBlob = new Blob(recordedChunks, { type: lastRecordedMime });
+        const previewBox = document.getElementById("video-preview-box");
+        const videoEl = document.getElementById("recorded-video-preview");
+        videoEl.src = URL.createObjectURL(lastRecordedBlob);
+        previewBox.classList.remove("hidden");
+      }
     };
-    mediaRecorder.start();
+
+    isRecordingActive = true;
+    renderCompositeRecordingFrame();
+    mediaRecorder.start(250); // Flush chunks every 250ms so data is never empty!
     btn.classList.add("recording");
-    btn.textContent = "⏹ Stop";
-    showBanner("🔴 Recording Match Canvas...");
-  } catch (e) {
-    showBanner("⚠️ Recording not supported on this WebView.");
+    btn.textContent = "⏹ Stop Rec";
+  } catch (err) {
+    console.log("Recorder error:", err);
+    isRecordingActive = false;
   }
 }
 
-async function shareRecordedVideo() {
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-    await new Promise(r => setTimeout(r, 300));
+function stopRecording() {
+  const btn = document.getElementById("btn-record-toggle");
+  isRecordingActive = false;
+  btn.classList.remove("recording");
+  btn.textContent = "⏺ Rec";
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    try { mediaRecorder.stop(); } catch (e) {}
   }
-  if (!lastRecordedBlob) {
-    alert("Tip: Tap '⏺ Rec' at the top during a match (or it auto-records when toggled) to capture video!");
+}
+
+function toggleRecording() {
+  if (isRecordingActive) {
+    stopRecording();
+    showBanner("📹 Recording Saved! Ready to share at Match End.");
+  } else {
+    startRecording();
+    showBanner("🔴 Recording Full Viral Match Layout...");
+  }
+}
+
+async function shareOrDownloadVideo() {
+  if (isRecordingActive) {
+    stopRecording();
+    await new Promise(r => setTimeout(r, 350));
+  }
+  if (!lastRecordedBlob || lastRecordedBlob.size === 0) {
+    alert("No video recorded yet! Keep 'Auto-Record Match Video' checked on the Main Menu or tap '⏺ Rec' during a match.");
     return;
   }
-  const file = new File([lastRecordedBlob], "sword-territory-match.webm", { type: "video/webm" });
+  const ext = lastRecordedMime.includes("mp4") ? "mp4" : "webm";
+  const fileName = `sword-territory-${Date.now()}.${ext}`;
+  const file = new File([lastRecordedBlob], fileName, { type: lastRecordedMime });
+
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
-        title: "Sword Territory Match",
-        text: "Watch this crazy Country Paint War!",
+        title: "Sword Territory",
+        text: "Watch this Sword Territory Country Paint War!",
         files: [file]
       });
       return;
     } catch (e) {}
   }
-  // Fallback download link
+
+  // Fallback direct download for Android browser / WebView
   const url = URL.createObjectURL(lastRecordedBlob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "sword-territory-match.webm";
+  a.download = fileName;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 }
 
-/* --- CORE GAME ENGINE --- */
+/* ============================================================================
+ * SQUARE ARENA & PRE-PAINTED QUADRANT ENGINE
+ * ============================================================================ */
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
 
-// Offscreen territory paint buffer for 60 FPS budget phone smoothness
+// Crisp pixelated low-res territory grid (120x120 gives blocky edges & exact 25.0% quadrants)
+const GRID_SIZE = 120;
 const gridCanvas = document.createElement("canvas");
+gridCanvas.width = GRID_SIZE;
+gridCanvas.height = GRID_SIZE;
 const gridCtx = gridCanvas.getContext("2d");
-
-let GRID_W = 90;
-let GRID_H = 135;
-let territoryGrid = new Uint8Array(GRID_W * GRID_H);
+let territoryGrid = new Uint8Array(GRID_SIZE * GRID_SIZE);
 
 let gameState = {
   running: false,
-  mode: "watch", // 'watch' | 'play'
-  contextMode: "quick", // 'quick' | 'tournament' | 'league'
-  teamMode: "ffa", // 'ffa' | 'teams'
-  arenaId: "meadow",
+  mode: "watch",
+  contextMode: "quick",
+  teamMode: "ffa",
+  arenaId: "classic",
   simSpeed: 1,
   timeRemaining: 150,
   totalTime: 150,
@@ -321,197 +619,250 @@ let gameState = {
   shakeTimer: 0,
   shakeIntensity: 0,
   predictedId: null,
-  safeZone: { x: 0, y: 0, r: 9999, maxR: 9999 },
-  supplyDropTimer: 32,
+  safeZone: { x: 200, y: 200, r: 999, maxR: 999 },
+  supplyDropTimer: 28,
   eliminationOrder: [],
   players: [],
   powerups: [],
   crates: [],
   obstacles: [],
   particles: [],
-  underdogId: null
+  underdogId: null,
+  gridCols: 2,
+  gridRows: 2
 };
 
 const joystick = { active: false, dx: 0, dy: 0 };
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+function resizeSquareCanvas() {
+  const wrapper = document.getElementById("arena-wrapper");
+  const rect = wrapper.getBoundingClientRect();
+  const availW = window.innerWidth - 16;
+  const availH = rect.height > 100 ? rect.height - 8 : window.innerHeight - 210;
+  const squareSide = Math.max(240, Math.floor(Math.min(availW, availH, 500)));
+  canvas.width = squareSide;
+  canvas.height = squareSide;
+  canvas.style.width = `${squareSide}px`;
+  canvas.style.height = `${squareSide}px`;
 }
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+window.addEventListener("resize", () => {
+  if (gameState.running) resizeSquareCanvas();
+});
 
 function showBanner(msg) {
   const b = document.getElementById("hud-banner");
   b.textContent = msg;
   b.classList.remove("hidden");
   clearTimeout(b._t);
-  b._t = setTimeout(() => b.classList.add("hidden"), 3200);
+  b._t = setTimeout(() => b.classList.add("hidden"), 2800);
 }
 
-function buildArenaObstacles(arenaId, w, h) {
+function getZoneSplitForCount(n) {
+  if (n <= 4) return { cols: 2, rows: 2 };
+  if (n <= 6) return { cols: 3, rows: 2 };
+  if (n <= 8) return { cols: 4, rows: 2 };
+  if (n <= 16) return { cols: 4, rows: 4 };
+  return { cols: 8, rows: 4 };
+}
+
+function prePaintEqualZones(players) {
+  const n = players.length;
+  const { cols, rows } = getZoneSplitForCount(n);
+  gameState.gridCols = cols;
+  gameState.gridRows = rows;
+
+  for (let gy = 0; gy < GRID_SIZE; gy++) {
+    for (let gx = 0; gx < GRID_SIZE; gx++) {
+      const col = Math.min(cols - 1, Math.floor((gx / GRID_SIZE) * cols));
+      const row = Math.min(rows - 1, Math.floor((gy / GRID_SIZE) * rows));
+      const zoneIdx = (row * cols + col) % n;
+      const owner = players[zoneIdx];
+      territoryGrid[gy * GRID_SIZE + gx] = owner.index;
+      gridCtx.fillStyle = owner.color;
+      gridCtx.fillRect(gx, gy, 1, 1);
+    }
+  }
+}
+
+function buildSquareObstacles(arenaId, side) {
   const obs = [];
-  if (arenaId === "meadow") {
-    const padX = w * 0.25, padY = h * 0.28;
-    obs.push({ x: padX, y: padY, w: 36, h: 36, type: "wall" });
-    obs.push({ x: w - padX - 36, y: padY, w: 36, h: 36, type: "wall" });
-    obs.push({ x: padX, y: h - padY - 36, w: 36, h: 36, type: "wall" });
-    obs.push({ x: w - padX - 36, y: h - padY - 36, w: 36, h: 36, type: "wall" });
-  } else if (arenaId === "labyrinth") {
-    obs.push({ x: w * 0.2, y: h * 0.32, w: w * 0.6, h: 18, type: "wall" });
-    obs.push({ x: w * 0.2, y: h * 0.68, w: w * 0.6, h: 18, type: "wall" });
-    obs.push({ x: w * 0.18, y: h * 0.45, w: 18, h: h * 0.15, type: "wall" });
-    obs.push({ x: w * 0.78, y: h * 0.45, w: 18, h: h * 0.15, type: "wall" });
+  if (arenaId === "pillars") {
+    const p = side * 0.27;
+    const s = side * 0.08;
+    obs.push({ x: p, y: p, w: s, h: s, type: "wall" });
+    obs.push({ x: side - p - s, y: p, w: s, h: s, type: "wall" });
+    obs.push({ x: p, y: side - p - s, w: s, h: s, type: "wall" });
+    obs.push({ x: side - p - s, y: side - p - s, w: s, h: s, type: "wall" });
   } else if (arenaId === "volcano") {
-    obs.push({ x: w * 0.5 - 42, y: h * 0.54 - 42, w: 84, h: 84, type: "lava" });
-  } else if (arenaId === "bridges") {
-    obs.push({ x: 0, y: h * 0.52, w: w * 0.28, h: 22, type: "wall" });
-    obs.push({ x: w * 0.42, y: h * 0.52, w: w * 0.16, h: 22, type: "wall" });
-    obs.push({ x: w * 0.72, y: h * 0.52, w: w * 0.28, h: 22, type: "wall" });
+    const s = side * 0.16;
+    obs.push({ x: side / 2 - s / 2, y: side / 2 - s / 2, w: s, h: s, type: "lava" });
+  } else if (arenaId === "labyrinth") {
+    obs.push({ x: side * 0.22, y: side * 0.33, w: side * 0.56, h: 12, type: "wall" });
+    obs.push({ x: side * 0.22, y: side * 0.65, w: side * 0.56, h: 12, type: "wall" });
   }
   return obs;
 }
 
 function setupMatch(participants, options = {}) {
-  resizeCanvas();
-  const lowRes = document.getElementById("chk-lowres").checked;
+  document.getElementById("menu-screen").classList.add("hidden");
+  document.getElementById("match-screen").classList.remove("hidden");
+  resizeSquareCanvas();
+  buildAllFlagCaches();
+
+  const side = canvas.width;
   const isMega = participants.length >= 16;
-  GRID_W = lowRes ? 64 : (isMega ? 110 : 84);
-  GRID_H = Math.round(GRID_W * (canvas.height / canvas.width));
-  gridCanvas.width = GRID_W;
-  gridCanvas.height = GRID_H;
-  territoryGrid = new Uint8Array(GRID_W * GRID_H);
-
-  gridCtx.fillStyle = "#111827";
-  gridCtx.fillRect(0, 0, GRID_W, GRID_H);
-
-  const arenaTop = 132;
-  const arenaH = canvas.height - arenaTop;
-  const centerX = canvas.width / 2;
-  const centerY = arenaTop + arenaH / 2;
-  const maxR = Math.hypot(canvas.width / 2, arenaH / 2) * 0.95;
+  const { cols, rows } = getZoneSplitForCount(participants.length);
 
   gameState.running = true;
   gameState.mode = options.mode || "watch";
   gameState.contextMode = options.contextMode || "quick";
   gameState.teamMode = options.teamMode || document.getElementById("sel-team-mode").value;
   gameState.arenaId = options.arenaId || document.getElementById("sel-arena").value;
-  gameState.timeRemaining = isMega ? 165 : 135;
-  gameState.totalTime = gameState.timeRemaining;
-  gameState.safeZone = { x: centerX, y: centerY, r: maxR, maxR };
-  gameState.supplyDropTimer = 30;
+  gameState.timeRemaining = 150;
+  gameState.totalTime = 150;
+  gameState.safeZone = { x: side / 2, y: side / 2, r: side * 0.72, maxR: side * 0.72 };
+  gameState.supplyDropTimer = 28;
   gameState.eliminationOrder = [];
   gameState.powerups = [];
   gameState.crates = [];
   gameState.particles = [];
-  gameState.obstacles = buildArenaObstacles(gameState.arenaId, canvas.width, canvas.height);
+  gameState.obstacles = buildSquareObstacles(gameState.arenaId, side);
 
-  const ballRadius = isMega ? 13 : 20;
-  const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#eab308"];
+  const ballRadius = isMega ? Math.max(10, side * 0.032) : Math.max(17, side * 0.056);
+  const teamPastels = ["#E05A5A", "#6A85D6", "#72BB7E", "#8E8A8F"];
+
+  // Exact starting positions for 4-player reference layout:
+  // Top-left (Turkey), Top-right (USA), Bottom-left (Brazil), Bottom-right near right edge (Germany)
+  const fourPos = [
+    { x: side * 0.18, y: side * 0.18, vx: 1, vy: 0.75 },
+    { x: side * 0.82, y: side * 0.18, vx: -0.8, vy: 0.9 },
+    { x: side * 0.18, y: side * 0.82, vx: 0.9, vy: -0.8 },
+    { x: side * 0.84, y: side * 0.72, vx: -0.95, vy: -0.7 }
+  ];
 
   gameState.players = participants.map((c, idx) => {
-    const angle = (idx / participants.length) * Math.PI * 2;
-    const spawnDist = Math.min(canvas.width, arenaH) * 0.34;
-    const x = centerX + Math.cos(angle) * spawnDist;
-    const y = centerY + Math.sin(angle) * spawnDist;
-    const maxHp = c.trait === "tank" ? 135 : 100;
-    const baseSpeed = c.trait === "speed" ? 2.45 : 2.05;
-    const swordCount = c.trait === "dual" ? 2 : 1;
-    const swordLen = (c.trait === "blade" ? 1.32 : 1.0) * (isMega ? 26 : 38);
+    let sx, sy, dirX, dirY;
+    if (participants.length === 4) {
+      sx = fourPos[idx].x;
+      sy = fourPos[idx].y;
+      dirX = fourPos[idx].vx;
+      dirY = fourPos[idx].vy;
+    } else {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols) % rows;
+      const zoneW = side / cols;
+      const zoneH = side / rows;
+      sx = col * zoneW + zoneW * (col < cols / 2 ? 0.32 : 0.68);
+      sy = row * zoneH + zoneH * (row < rows / 2 ? 0.32 : 0.68);
+      const ang = Math.atan2(side / 2 - sy, side / 2 - sx) + 0.4;
+      dirX = Math.cos(ang);
+      dirY = Math.sin(ang);
+    }
+
+    const spdStat = 125; // Matches "SPD 125" in reference HUD
+    const basePxSpeed = (spdStat / 125) * (side * 0.0062);
+    const lenNorm = Math.hypot(dirX, dirY) || 1;
+    const maxHp = 5; // Matches "HP 5" in reference HUD
+    const swordL = 0.8; // Matches "L 0.8" in reference HUD
     const teamIdx = gameState.teamMode === "teams" ? (idx % 4) : idx;
 
     return {
       index: idx + 1,
       id: c.id,
       name: c.name,
-      flag: c.flag || "🏳️",
-      color: gameState.teamMode === "teams" ? teamColors[teamIdx] : c.color,
-      ownColor: c.color,
-      bands: c.bands || [c.color, "#ffffff", c.color],
+      color: gameState.teamMode === "teams" ? teamPastels[teamIdx] : c.color,
       trait: c.trait,
       traitName: c.traitName || "Balanced",
       team: teamIdx,
       isHuman: gameState.mode === "play" && idx === 0,
-      x,
-      y,
-      vx: Math.cos(angle + 1.2) * baseSpeed,
-      vy: Math.sin(angle + 1.2) * baseSpeed,
+      x: sx,
+      y: sy,
+      vx: (dirX / lenNorm) * basePxSpeed,
+      vy: (dirY / lenNorm) * basePxSpeed,
       r: ballRadius,
       hp: maxHp,
       maxHp,
-      baseSpeed,
-      speedMult: 1,
+      spdStat,
+      baseSpeed: basePxSpeed,
       speedBoostTimer: 0,
-      shieldTimer: c.trait === "shield" ? 6 : 0,
-      swords: swordCount,
-      swordTier: 1,
+      shieldTimer: 0,
+      swords: 1,
+      swordL,
+      swordLength: ballRadius * 1.45 * (swordL / 0.8),
       swordDurability: 100,
-      swordAngle: angle,
+      swordAngle: idx * 1.3,
       swordSpinSpeed: 0.095,
-      swordLength: swordLen,
       barracks: 0,
       barracksTimer: 8,
-      areaPct: 0,
+      areaPct: +(100 / participants.length).toFixed(1),
       alive: true,
       hitCooldown: 0,
       dashCooldown: 0
     };
   });
 
-  // Initial crates & powerups
-  for (let i = 0; i < 5; i++) spawnCrate();
-  for (let i = 0; i < 4; i++) spawnPowerup();
+  // Pre-paint quadrants/zones with zero gaps!
+  prePaintEqualZones(gameState.players);
+  recalculateTerritoryPercentages();
+  updateHudLeaderboard();
 
-  document.getElementById("menu-screen").classList.add("hidden");
-  document.getElementById("hud").classList.remove("hidden");
+  for (let i = 0; i < 3; i++) spawnPowerup();
+  for (let i = 0; i < 2; i++) spawnCrate(false);
+
   if (gameState.mode === "play") {
     document.getElementById("play-controls").classList.remove("hidden");
   } else {
     document.getElementById("play-controls").classList.add("hidden");
   }
-  updateHudLeaderboard();
+
+  // Auto-record if enabled
+  lastRecordedBlob = null;
+  document.getElementById("video-preview-box").classList.add("hidden");
+  if (document.getElementById("chk-autorecord").checked) {
+    startRecording();
+  }
 }
 
 function spawnPowerup(x, y, forcedType) {
-  const arenaTop = 140;
+  const side = canvas.width;
   const types = ["barracks", "speed", "shield", "sword"];
   const type = forcedType || types[Math.floor(Math.random() * types.length)];
   gameState.powerups.push({
-    x: x || (40 + Math.random() * (canvas.width - 80)),
-    y: y || (arenaTop + 30 + Math.random() * (canvas.height - arenaTop - 70)),
-    r: 14,
+    x: x || (30 + Math.random() * (side - 60)),
+    y: y || (30 + Math.random() * (side - 60)),
+    r: 12,
     type
   });
 }
 
 function spawnCrate(isSupplyDrop = false) {
-  const arenaTop = 140;
-  const x = isSupplyDrop ? canvas.width / 2 : (50 + Math.random() * (canvas.width - 100));
-  const y = isSupplyDrop ? (arenaTop + (canvas.height - arenaTop) / 2) : (arenaTop + 40 + Math.random() * (canvas.height - arenaTop - 80));
+  const side = canvas.width;
+  const x = isSupplyDrop ? side / 2 : (40 + Math.random() * (side - 80));
+  const y = isSupplyDrop ? side / 2 : (40 + Math.random() * (side - 80));
   gameState.crates.push({
-    x,
-    y,
-    r: isSupplyDrop ? 24 : 17,
-    hp: isSupplyDrop ? 60 : 25,
-    maxHp: isSupplyDrop ? 60 : 25,
+    x, y,
+    r: isSupplyDrop ? 20 : 14,
+    hp: isSupplyDrop ? 3 : 1.5,
     isSupplyDrop
   });
 }
 
-function paintTerritoryCircle(player, radiusPx) {
-  const gx = Math.floor((player.x / canvas.width) * GRID_W);
-  const gy = Math.floor((player.y / canvas.height) * GRID_H);
-  const gr = Math.max(1, Math.ceil((radiusPx / canvas.width) * GRID_W));
+function paintTerritoryAt(player, pxX, pxY, radiusPx) {
+  const side = canvas.width;
+  const gx = Math.floor((pxX / side) * GRID_SIZE);
+  const gy = Math.floor((pxY / side) * GRID_SIZE);
+  const gr = Math.max(1, Math.ceil((radiusPx / side) * GRID_SIZE));
   let paintedNew = 0;
 
   gridCtx.fillStyle = player.color;
   for (let dy = -gr; dy <= gr; dy++) {
     for (let dx = -gr; dx <= gr; dx++) {
-      if (dx * dx + dy * dy <= gr * gr) {
+      // Blocky pixelated circle edge
+      if (dx * dx + dy * dy <= gr * gr + 1) {
         const nx = gx + dx;
         const ny = gy + dy;
-        if (nx >= 0 && nx < GRID_W && ny >= 0 && ny < GRID_H) {
-          const idx = ny * GRID_W + nx;
+        if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
+          const idx = ny * GRID_SIZE + nx;
           if (territoryGrid[idx] !== player.index) {
             territoryGrid[idx] = player.index;
             gridCtx.fillRect(nx, ny, 1, 1);
@@ -539,7 +890,7 @@ function recalculateTerritoryPercentages() {
   gameState.players.forEach(p => {
     p.areaPct = +((counts[p.index] / total) * 100).toFixed(1);
     if (p.alive) {
-      const score = p.areaPct * 2 + p.hp;
+      const score = p.areaPct + p.hp * 5;
       if (score < lowestScore) {
         lowestScore = score;
         underdog = p.id;
@@ -552,20 +903,20 @@ function recalculateTerritoryPercentages() {
 function addParticles(x, y, color, count = 8) {
   for (let i = 0; i < count; i++) {
     const a = Math.random() * Math.PI * 2;
-    const s = 1.5 + Math.random() * 4;
+    const s = 1.5 + Math.random() * 3.5;
     gameState.particles.push({
       x, y,
       vx: Math.cos(a) * s,
       vy: Math.sin(a) * s,
       color,
-      life: 0.35 + Math.random() * 0.25
+      life: 0.3 + Math.random() * 0.2
     });
   }
 }
 
-function triggerShake(intensity = 5, hitStop = 0.045) {
+function triggerShake(intensity = 4, hitStop = 0.04) {
   if (!document.getElementById("chk-shake").checked) return;
-  gameState.shakeTimer = 0.14;
+  gameState.shakeTimer = 0.12;
   gameState.shakeIntensity = intensity;
   gameState.hitStopTimer = hitStop;
 }
@@ -578,33 +929,31 @@ function stepSimulation(dt) {
   }
   if (gameState.shakeTimer > 0) gameState.shakeTimer -= dt;
 
-  const arenaTop = 132;
+  const side = canvas.width;
   gameState.timeRemaining = Math.max(0, gameState.timeRemaining - dt);
 
-  // Shrinking Burn Zone after 20 seconds
+  // Shrinking Burn Zone (if enabled)
   const elapsed = gameState.totalTime - gameState.timeRemaining;
-  if (elapsed > 20) {
-    const shrinkFactor = Math.max(0.24, 1 - ((elapsed - 20) / (gameState.totalTime - 20)) * 0.76);
+  if (document.getElementById("chk-shrinkzone").checked && elapsed > 30) {
+    const shrinkFactor = Math.max(0.28, 1 - ((elapsed - 30) / (gameState.totalTime - 30)) * 0.72);
     gameState.safeZone.r = gameState.safeZone.maxR * shrinkFactor;
-    document.getElementById("hud-zone-status").textContent = "🔥 Zone Shrinking!";
+    document.getElementById("hud-zone-status").textContent = "🔥 Zone Shrinking";
   } else {
+    gameState.safeZone.r = gameState.safeZone.maxR;
     document.getElementById("hud-zone-status").textContent = "Zone: Safe";
   }
 
-  // Center Rare Supply Drop
+  // Supply Drop in Center
   gameState.supplyDropTimer -= dt;
   if (gameState.supplyDropTimer <= 0) {
-    gameState.supplyDropTimer = 35;
+    gameState.supplyDropTimer = 32;
     spawnCrate(true);
-    sfx.play("siren");
-    showBanner("📦 MYTHIC SUPPLY DROP IN THE CENTER!");
+    showBanner("📦 CENTER SUPPLY DROP SPAWNED!");
   }
 
-  // Random powerup & crate replenish
-  if (Math.random() < dt * 0.35 && gameState.powerups.length < 7) spawnPowerup();
-  if (Math.random() < dt * 0.2 && gameState.crates.length < 5) spawnCrate(false);
+  if (Math.random() < dt * 0.3 && gameState.powerups.length < 5) spawnPowerup();
+  if (Math.random() < dt * 0.18 && gameState.crates.length < 4) spawnCrate(false);
 
-  // Update each country ball
   gameState.players.forEach(p => {
     if (!p.alive) return;
 
@@ -613,60 +962,48 @@ function stepSimulation(dt) {
     if (p.speedBoostTimer > 0) p.speedBoostTimer -= dt;
     if (p.shieldTimer > 0) p.shieldTimer -= dt;
 
-    // Land = Power: Area % boosts HP regen & speed!
-    const regenRate = (0.35 + p.areaPct * 0.085) * (p.trait === "regen" ? 1.8 : 1);
+    // Land = Power: More territory % gives gradual HP regen & higher SPD stat
+    const regenRate = (0.04 + (p.areaPct / 100) * 0.18) * (p.trait === "regen" ? 1.5 : 1);
     p.hp = Math.min(p.maxHp, p.hp + regenRate * dt);
 
-    // Barracks passive generation
+    // Barracks bonus
     if (p.barracks > 0) {
-      p.barracksTimer -= dt * p.barracks;
+      p.barracksTimer -= dt;
       if (p.barracksTimer <= 0) {
-        p.barracksTimer = 9;
-        p.hp = Math.min(p.maxHp, p.hp + 8);
-        if (p.swords < 4) p.swords++;
-        paintTerritoryCircle(p, p.r * 2.4);
+        p.barracksTimer = 8;
+        p.hp = Math.min(p.maxHp, p.hp + 1);
+        paintTerritoryAt(p, p.x, p.y, p.r * 2.2);
       }
     }
 
-    // Comeback mechanic for weakest player
     const isUnderdog = gameState.underdogId === p.id;
-    const territorySpeedBonus = 1 + Math.min(0.35, p.areaPct * 0.01);
-    const boostMult = (p.speedBoostTimer > 0 ? 1.45 : 1) * (isUnderdog ? 1.22 : 1) * territorySpeedBonus;
+    const areaSpdBonus = Math.round(p.areaPct * 0.4);
+    p.spdStat = 125 + areaSpdBonus + (p.speedBoostTimer > 0 ? 35 : 0) + (isUnderdog ? 15 : 0);
+    const currentSpeed = (p.spdStat / 125) * p.baseSpeed;
 
-    // Human Joystick or AI steering
     if (p.isHuman && (joystick.dx !== 0 || joystick.dy !== 0)) {
-      const targetSpeed = p.baseSpeed * boostMult;
-      p.vx = joystick.dx * targetSpeed;
-      p.vy = joystick.dy * targetSpeed;
-    } else if (!p.isHuman) {
-      // Smart AI: pull toward safe zone center or supply drop if outside
-      const distCenter = Math.hypot(p.x - gameState.safeZone.x, p.y - gameState.safeZone.y);
-      if (distCenter > gameState.safeZone.r * 0.82) {
-        const ang = Math.atan2(gameState.safeZone.y - p.y, gameState.safeZone.x - p.x);
-        p.vx += Math.cos(ang) * 0.25;
-        p.vy += Math.sin(ang) * 0.25;
-      }
-      // Maintain steady speed
-      const curSpd = Math.hypot(p.vx, p.vy) || 1;
-      const targetSpeed = p.baseSpeed * boostMult;
-      p.vx = (p.vx / curSpd) * targetSpeed;
-      p.vy = (p.vy / curSpd) * targetSpeed;
+      p.vx = joystick.dx * currentSpeed;
+      p.vy = joystick.dy * currentSpeed;
+    } else {
+      const curMag = Math.hypot(p.vx, p.vy) || 1;
+      p.vx = (p.vx / curMag) * currentSpeed;
+      p.vy = (p.vy / curMag) * currentSpeed;
     }
 
     p.x += p.vx;
     p.y += p.vy;
 
-    // Wall bounces
+    // Crisp wall bounces inside the square arena
     if (p.x - p.r < 0) { p.x = p.r; p.vx = Math.abs(p.vx); }
-    if (p.x + p.r > canvas.width) { p.x = canvas.width - p.r; p.vx = -Math.abs(p.vx); }
-    if (p.y - p.r < arenaTop) { p.y = arenaTop + p.r; p.vy = Math.abs(p.vy); }
-    if (p.y + p.r > canvas.height) { p.y = canvas.height - p.r; p.vy = -Math.abs(p.vy); }
+    if (p.x + p.r > side) { p.x = side - p.r; p.vx = -Math.abs(p.vx); }
+    if (p.y - p.r < 0) { p.y = p.r; p.vy = Math.abs(p.vy); }
+    if (p.y + p.r > side) { p.y = side - p.r; p.vy = -Math.abs(p.vy); }
 
-    // Arena obstacles collision
+    // Obstacles
     gameState.obstacles.forEach(ob => {
       if (p.x + p.r > ob.x && p.x - p.r < ob.x + ob.w && p.y + p.r > ob.y && p.y - p.r < ob.y + ob.h) {
         if (ob.type === "lava") {
-          p.hp -= 18 * dt;
+          p.hp -= 0.8 * dt;
         } else {
           p.vx = -p.vx;
           p.vy = -p.vy;
@@ -676,52 +1013,57 @@ function stepSimulation(dt) {
       }
     });
 
-    // Shrinking zone burn damage
-    const distFromSafe = Math.hypot(p.x - gameState.safeZone.x, p.y - gameState.safeZone.y);
-    if (distFromSafe > gameState.safeZone.r) {
-      p.hp -= 11 * dt;
-      if (Math.random() < 0.2) addParticles(p.x, p.y, "#f97316", 2);
+    // Burn zone damage
+    const distFromCenter = Math.hypot(p.x - gameState.safeZone.x, p.y - gameState.safeZone.y);
+    if (distFromCenter > gameState.safeZone.r) {
+      p.hp -= 0.45 * dt;
     }
 
-    // Rotate orbiting swords
-    p.swordAngle += p.swordSpinSpeed * (isUnderdog ? 1.25 : 1) * (p.speedBoostTimer > 0 ? 1.25 : 1);
+    // Rotate swords and paint land under both ball AND sword blade!
+    p.swordAngle += p.swordSpinSpeed * (p.speedBoostTimer > 0 ? 1.25 : 1);
+    paintTerritoryAt(p, p.x, p.y, p.r * 1.18);
 
-    // Paint territory under ball
-    paintTerritoryCircle(p, p.r * (isUnderdog ? 1.55 : 1.15));
+    for (let s = 0; s < p.swords; s++) {
+      const ang = p.swordAngle + (s * Math.PI * 2) / p.swords;
+      const tipX = p.x + Math.cos(ang) * (p.r + p.swordLength * 0.75);
+      const tipY = p.y + Math.sin(ang) * (p.r + p.swordLength * 0.75);
+      paintTerritoryAt(p, tipX, tipY, p.r * 0.42);
+    }
 
     // Pick up map powerups
     for (let i = gameState.powerups.length - 1; i >= 0; i--) {
       const pw = gameState.powerups[i];
       if (Math.hypot(p.x - pw.x, p.y - pw.y) < p.r + pw.r) {
         sfx.play("powerup");
-        if (pw.type === "barracks") p.barracks++;
+        if (pw.type === "barracks") p.barracks = 1;
         if (pw.type === "speed") p.speedBoostTimer = 6;
         if (pw.type === "shield") p.shieldTimer = 6;
         if (pw.type === "sword") {
-          p.swords = Math.min(4, p.swords + 1);
-          p.swordTier = Math.min(4, p.swordTier + 1);
+          p.swords = Math.min(3, p.swords + 1);
+          p.swordL = +(Math.min(1.6, p.swordL + 0.2)).toFixed(1);
+          p.swordLength = p.r * 1.45 * (p.swordL / 0.8);
           p.swordDurability = 100;
         }
-        addParticles(pw.x, pw.y, "#fde047", 10);
+        addParticles(pw.x, pw.y, "#fde047", 8);
         gameState.powerups.splice(i, 1);
       }
     }
 
-    // Smash loot crates with swords or body
+    // Smash crates
     for (let i = gameState.crates.length - 1; i >= 0; i--) {
       const cr = gameState.crates[i];
       if (Math.hypot(p.x - cr.x, p.y - cr.y) < p.r + cr.r + p.swordLength * 0.7) {
-        cr.hp -= 35 * dt * p.swords;
+        cr.hp -= 2 * dt * Math.max(1, p.swords);
         if (cr.hp <= 0) {
           sfx.play("break");
-          addParticles(cr.x, cr.y, "#f59e0b", 14);
+          addParticles(cr.x, cr.y, "#f59e0b", 12);
           if (cr.isSupplyDrop) {
-            p.swords = Math.min(4, p.swords + 2);
-            p.swordTier = 4;
+            p.swords = Math.min(3, p.swords + 1);
+            p.swordL = +(Math.min(1.6, p.swordL + 0.2)).toFixed(1);
+            p.swordLength = p.r * 1.45 * (p.swordL / 0.8);
             p.hp = p.maxHp;
-            p.shieldTimer = 8;
-            paintTerritoryCircle(p, p.r * 4.2);
-            showBanner(`🏆 ${p.name} claimed the Mythic Supply Drop!`);
+            p.barracks = 1;
+            paintTerritoryAt(p, p.x, p.y, p.r * 3.2);
           } else {
             spawnPowerup(cr.x, cr.y);
           }
@@ -731,7 +1073,7 @@ function stepSimulation(dt) {
     }
   });
 
-  // Ball-vs-Ball & Sword-vs-Sword Combat
+  // Ball & Sword Collisions
   const n = gameState.players.length;
   for (let i = 0; i < n; i++) {
     const a = gameState.players[i];
@@ -744,37 +1086,30 @@ function stepSimulation(dt) {
       const dy = b.y - a.y;
       const dist = Math.hypot(dx, dy) || 1;
 
-      // Body bounce
+      // Elastic body bounce
       if (dist < a.r + b.r) {
         const nx = dx / dist;
         const ny = dy / dist;
         const overlap = (a.r + b.r - dist) * 0.5;
-        a.x -= nx * overlap;
-        a.y -= ny * overlap;
-        b.x += nx * overlap;
-        b.y += ny * overlap;
-        a.vx = -nx * a.baseSpeed;
-        a.vy = -ny * a.baseSpeed;
-        b.vx = nx * b.baseSpeed;
-        b.vy = ny * b.baseSpeed;
+        a.x -= nx * overlap; a.y -= ny * overlap;
+        b.x += nx * overlap; b.y += ny * overlap;
+        a.vx = -nx * a.baseSpeed; a.vy = -ny * a.baseSpeed;
+        b.vx = nx * b.baseSpeed; b.vy = ny * b.baseSpeed;
       }
 
-      // Skip friendly fire in Team Mode
       if (gameState.teamMode === "teams" && a.team === b.team) continue;
 
-      // Check sword reach
       const reachA = a.r + (a.swords > 0 ? a.swordLength : 0);
       const reachB = b.r + (b.swords > 0 ? b.swordLength : 0);
 
       if (dist < Math.max(reachA + b.r, reachB + a.r) && a.hitCooldown <= 0 && b.hitCooldown <= 0) {
-        // Sword Clash vs Direct Hit
-        if (a.swords > 0 && b.swords > 0 && Math.random() < 0.48) {
-          // Sword-on-Sword Clash!
+        if (a.swords > 0 && b.swords > 0 && Math.random() < 0.42) {
+          // Sword Clash!
           sfx.play("clash");
-          triggerShake(4, 0.03);
-          addParticles((a.x + b.x) / 2, (a.y + b.y) / 2, "#fde047", 10);
-          a.swordDurability -= 26 / a.swordTier;
-          b.swordDurability -= 26 / b.swordTier;
+          triggerShake(3.5, 0.03);
+          addParticles((a.x + b.x) / 2, (a.y + b.y) / 2, "#fde047", 9);
+          a.swordDurability -= 34;
+          b.swordDurability -= 34;
 
           if (a.swordDurability <= 0) {
             a.swords = Math.max(0, a.swords - 1);
@@ -788,54 +1123,43 @@ function stepSimulation(dt) {
             sfx.play("break");
             if (a.isHuman) SaveData.daily[1].progress = Math.min(SaveData.daily[1].target, SaveData.daily[1].progress + 1);
           }
-          // Regrow basic sword after 4s if disarmed
-          if (a.swords === 0) setTimeout(() => { if (a.alive && a.swords === 0) a.swords = 1; }, 3800);
-          if (b.swords === 0) setTimeout(() => { if (b.alive && b.swords === 0) b.swords = 1; }, 3800);
+          if (a.swords === 0) setTimeout(() => { if (a.alive && a.swords === 0) a.swords = 1; }, 3200);
+          if (b.swords === 0) setTimeout(() => { if (b.alive && b.swords === 0) b.swords = 1; }, 3200);
         } else {
-          // Sword cuts enemy country ball!
+          // Sword Hit on Enemy Ball (-1 HP on the 5 HP scale)
           sfx.play("hit");
-          triggerShake(6, 0.045);
-
-          if (a.swords > 0 && dist < reachA + b.r) {
-            const furyMult = (a.trait === "fury" && a.hp < a.maxHp * 0.5) ? 1.35 : 1;
-            const dmg = (14 + a.swords * 4 + a.swordTier * 3) * furyMult;
-            if (b.shieldTimer <= 0) {
-              b.hp -= dmg;
-              addParticles(b.x, b.y, b.color, 12);
-            }
+          triggerShake(5, 0.04);
+          if (a.swords > 0 && dist < reachA + b.r && b.shieldTimer <= 0) {
+            b.hp = Math.max(0, b.hp - 1);
+            addParticles(b.x, b.y, b.color, 10);
           }
-          if (b.swords > 0 && dist < reachB + a.r) {
-            const furyMult = (b.trait === "fury" && b.hp < b.maxHp * 0.5) ? 1.35 : 1;
-            const dmg = (14 + b.swords * 4 + b.swordTier * 3) * furyMult;
-            if (a.shieldTimer <= 0) {
-              a.hp -= dmg;
-              addParticles(a.x, a.y, a.color, 12);
-            }
+          if (b.swords > 0 && dist < reachB + a.r && a.shieldTimer <= 0) {
+            a.hp = Math.max(0, a.hp - 1);
+            addParticles(a.x, a.y, a.color, 10);
           }
         }
-        // Knockback
+
         const nx = dx / dist;
         const ny = dy / dist;
-        const kb = 3.2;
-        a.vx = -nx * kb;
-        a.vy = -ny * kb;
-        b.vx = nx * kb;
-        b.vy = ny * kb;
-        a.hitCooldown = 0.22;
-        b.hitCooldown = 0.22;
+        a.vx = -nx * a.baseSpeed * 1.35;
+        a.vy = -ny * a.baseSpeed * 1.35;
+        b.vx = nx * b.baseSpeed * 1.35;
+        b.vy = ny * b.baseSpeed * 1.35;
+        a.hitCooldown = 0.26;
+        b.hitCooldown = 0.26;
       }
     }
   }
 
-  // Check eliminations
+  // Eliminations
   gameState.players.forEach(p => {
-    if (p.alive && p.hp <= 0) {
+    if (p.alive && p.hp <= 0.05) {
       p.alive = false;
       p.hp = 0;
       gameState.eliminationOrder.push(p);
       sfx.play("break");
-      addParticles(p.x, p.y, p.color, 22);
-      showBanner(`💀 ${p.flag} ${p.name} Eliminated!`);
+      addParticles(p.x, p.y, p.color, 20);
+      showBanner(`💀 ${p.name} Eliminated!`);
     }
   });
 
@@ -850,7 +1174,6 @@ function stepSimulation(dt) {
 
   recalculateTerritoryPercentages();
 
-  // Check match end condition
   const alive = gameState.players.filter(p => p.alive);
   const aliveTeams = new Set(alive.map(p => p.team));
   if (alive.length <= 1 || (gameState.teamMode === "teams" && aliveTeams.size <= 1) || gameState.timeRemaining <= 0) {
@@ -859,40 +1182,45 @@ function stepSimulation(dt) {
 }
 
 function renderGame() {
+  const side = canvas.width;
   ctx.save();
+
   if (gameState.shakeTimer > 0) {
     const sx = (Math.random() - 0.5) * gameState.shakeIntensity * 2;
     const sy = (Math.random() - 0.5) * gameState.shakeIntensity * 2;
     ctx.translate(sx, sy);
   }
 
-  // 1. Draw low-res territory grid scaled smoothly to screen
+  // 1. Draw blocky pixelated territory grid
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(gridCanvas, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(gridCanvas, 0, 0, side, side);
 
-  // Subtle grid lines
-  ctx.strokeStyle = "rgba(255,255,255,0.04)";
-  ctx.lineWidth = 1;
-  const step = 28;
-  for (let x = 0; x < canvas.width; x += step) {
-    ctx.beginPath(); ctx.moveTo(x, 132); ctx.lineTo(x, canvas.height); ctx.stroke();
-  }
-  for (let y = 132; y < canvas.height; y += step) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  // 2. Optional thin white center crosshair (shows original quadrant split)
+  if (document.getElementById("chk-crosshair").checked) {
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
+    ctx.lineWidth = 1;
+    for (let c = 1; c < gameState.gridCols; c++) {
+      const x = (side / gameState.gridCols) * c;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, side); ctx.stroke();
+    }
+    for (let r = 1; r < gameState.gridRows; r++) {
+      const y = (side / gameState.gridRows) * r;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(side, y); ctx.stroke();
+    }
   }
 
-  // 2. Obstacles
+  // 3. Obstacles
   gameState.obstacles.forEach(ob => {
-    ctx.fillStyle = ob.type === "lava" ? "#dc2626" : "#334155";
+    ctx.fillStyle = ob.type === "lava" ? "#dc2626" : "#1e293b";
     ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
-    ctx.strokeStyle = ob.type === "lava" ? "#f97316" : "#64748b";
+    ctx.strokeStyle = ob.type === "lava" ? "#f97316" : "#94a3b8";
     ctx.lineWidth = 2;
     ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
   });
 
-  // 3. Power-ups
+  // 4. Powerups & Crates
   const icons = { barracks: "🏰", speed: "⚡", shield: "🛡️", sword: "🗡️" };
-  ctx.font = "16px sans-serif";
+  ctx.font = "14px sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   gameState.powerups.forEach(pw => {
@@ -900,149 +1228,138 @@ function renderGame() {
     ctx.arc(pw.x, pw.y, pw.r, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
     ctx.fill();
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.fillText(icons[pw.type] || "⭐", pw.x, pw.y);
   });
 
-  // 4. Loot Crates & Center Supply Drop
   gameState.crates.forEach(cr => {
-    ctx.fillStyle = cr.isSupplyDrop ? "#eab308" : "#92400e";
+    ctx.fillStyle = cr.isSupplyDrop ? "#eab308" : "#78350f";
     ctx.fillRect(cr.x - cr.r, cr.y - cr.r, cr.r * 2, cr.r * 2);
-    ctx.strokeStyle = cr.isSupplyDrop ? "#fef08a" : "#fbbf24";
+    ctx.strokeStyle = "#fde047";
     ctx.lineWidth = 2;
     ctx.strokeRect(cr.x - cr.r, cr.y - cr.r, cr.r * 2, cr.r * 2);
     ctx.fillText(cr.isSupplyDrop ? "🪂" : "📦", cr.x, cr.y);
   });
 
-  // 5. Country Balls & Orbiting Swords
+  // 5. Country Balls with FULL-BLEED Flag Inside + White Outline + Thin Sword + Green HP Bar
   const skin = SWORD_SKINS.find(s => s.id === SaveData.equippedSkin) || SWORD_SKINS[0];
 
   gameState.players.forEach(p => {
     if (!p.alive) return;
 
-    // Underdog comeback aura
-    if (gameState.underdogId === p.id) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r + 7, 0, Math.PI * 2);
-      ctx.strokeStyle = "#fde047";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    // Orbiting Swords
+    // Thin attached sword(s) with guard & blade
     for (let s = 0; s < p.swords; s++) {
       const ang = p.swordAngle + (s * Math.PI * 2) / p.swords;
-      const sx = p.x + Math.cos(ang) * p.r;
-      const sy = p.y + Math.sin(ang) * p.r;
-      const ex = p.x + Math.cos(ang) * (p.r + p.swordLength);
-      const ey = p.y + Math.sin(ang) * (p.r + p.swordLength);
-
       ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(ang);
+
+      // Hilt / Guard
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillRect(p.r - 2, -5, 4, 10);
+
+      // Thin pointed sword blade
       ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(ex, ey);
-      ctx.strokeStyle = p.isHuman ? skin.color : "#f8fafc";
-      ctx.lineWidth = 5 + p.swordTier;
-      ctx.lineCap = "round";
-      ctx.shadowColor = p.isHuman ? skin.glow : p.color;
-      ctx.shadowBlur = 8;
+      ctx.moveTo(p.r + 2, -2.6);
+      ctx.lineTo(p.r + p.swordLength - 5, -2.2);
+      ctx.lineTo(p.r + p.swordLength + 2, 0);
+      ctx.lineTo(p.r + p.swordLength - 5, 2.2);
+      ctx.lineTo(p.r + 2, 2.6);
+      ctx.closePath();
+      ctx.fillStyle = p.isHuman ? skin.color : "#ffffff";
+      ctx.fill();
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 1;
       ctx.stroke();
       ctx.restore();
     }
 
-    // Country Flag Ball (Custom uploaded image or tri-band + flag emoji)
+    // Full-Bleed Circular Flag Inside Ball
     ctx.save();
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.clip();
 
-    const customImg = customFlagImages[p.id];
-    if (customImg && customImg.complete) {
-      ctx.drawImage(customImg, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+    const flagCan = flagCanvasCache[p.id];
+    if (flagCan) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(flagCan, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
     } else {
-      const bandH = (p.r * 2) / 3;
-      p.bands.forEach((bCol, idx) => {
-        ctx.fillStyle = bCol;
-        ctx.fillRect(p.x - p.r, p.y - p.r + idx * bandH, p.r * 2, bandH + 1);
-      });
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
     }
     ctx.restore();
 
-    // Rim & Shield
+    // Crisp White Outline Around Ball
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.strokeStyle = p.shieldTimer > 0 ? "#38bdf8" : "#ffffff";
-    ctx.lineWidth = p.shieldTimer > 0 ? 4 : 2.5;
+    ctx.lineWidth = p.shieldTimer > 0 ? 3.5 : 2.2;
     ctx.stroke();
 
-    // Flag Emoji & Name Label
-    ctx.font = `${Math.max(11, p.r * 0.78)}px sans-serif`;
-    ctx.fillText(p.flag, p.x, p.y);
-
-    ctx.font = "bold 10px sans-serif";
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 2.5;
-    ctx.strokeText(p.name, p.x, p.y - p.r - 10);
-    ctx.fillText(p.name, p.x, p.y - p.r - 10);
-
-    // Mini HP bar above ball
-    const bw = p.r * 2;
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(p.x - p.r, p.y - p.r - 6, bw, 4);
+    // Small Green HP Bar Directly Above Ball
+    const barW = p.r * 1.75;
+    const barH = 4.5;
+    const barX = p.x - barW / 2;
+    const barY = p.y - p.r - 9;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
     ctx.fillStyle = "#22c55e";
-    ctx.fillRect(p.x - p.r, p.y - p.r - 6, bw * (p.hp / p.maxHp), 4);
+    ctx.fillRect(barX, barY, barW * Math.max(0, p.hp / p.maxHp), barH);
   });
 
   // 6. Particles
   gameState.particles.forEach(pt => {
     ctx.fillStyle = pt.color;
     ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+    ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  // 7. Shrinking Burn Zone Ring
-  ctx.beginPath();
-  ctx.arc(gameState.safeZone.x, gameState.safeZone.y, gameState.safeZone.r, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
-  ctx.lineWidth = 4;
-  ctx.setLineDash([10, 6]);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  // 7. Shrinking Zone Ring (only when shrinking)
+  if (gameState.safeZone.r < gameState.safeZone.maxR * 0.98) {
+    ctx.beginPath();
+    ctx.arc(gameState.safeZone.x, gameState.safeZone.y, gameState.safeZone.r, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
 
   ctx.restore();
+
+  // Also update composite recording frame if recording is active
+  if (isRecordingActive) {
+    renderCompositeRecordingFrame();
+  }
 }
 
+/* --- LIVE COLORED HUD CARDS ABOVE ARENA --- */
 function updateHudLeaderboard() {
   const timerEl = document.getElementById("hud-timer");
   const mins = Math.floor(gameState.timeRemaining / 60);
   const secs = Math.floor(gameState.timeRemaining % 60);
   timerEl.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 
-  const sorted = [...gameState.players].sort((a, b) => {
-    if (a.alive !== b.alive) return a.alive ? -1 : 1;
-    return b.areaPct - a.areaPct || b.hp - a.hp;
-  });
+  // For 4 players, keep them in their fixed quadrant order (Turkey, USA, Brazil, Germany)
+  const displayList = gameState.players.length <= 4
+    ? gameState.players
+    : [...gameState.players].sort((a, b) => (b.alive - a.alive) || (b.areaPct - a.areaPct)).slice(0, 4);
 
   const container = document.getElementById("hud-leaderboard");
-  container.innerHTML = sorted.slice(0, 12).map(p => `
-    <div class="hud-card ${p.alive ? "" : "eliminated"}" style="border-left-color:${p.color}">
-      <div class="hud-card-header">
-        <span>${p.flag} ${p.name}</span>
-        <span>${p.areaPct}%</span>
+  container.innerHTML = displayList.map(p => `
+    <div class="hud-country-card ${p.alive ? "" : "eliminated"}" style="background:${p.color}">
+      <div class="hud-card-top">
+        <img class="hud-flag-circle" src="${flagDataUrlCache[p.id] || ""}" alt="${p.name}" />
+        <span class="hud-country-name">${p.name}</span>
       </div>
-      <div class="hud-hp-bar">
-        <div class="hud-hp-fill" style="width:${Math.round((p.hp / p.maxHp) * 100)}%"></div>
-      </div>
-      <div class="hud-stats-line">
-        <span>❤️${Math.ceil(p.hp)}</span>
-        <span>🗡️${p.swords}</span>
-        <span>⚡${p.baseSpeed.toFixed(1)}</span>
-        <span>🏰${p.barracks}</span>
-      </div>
+      <div class="hud-stat-line">HP ${Math.ceil(p.hp)} &nbsp;AREA ${p.areaPct.toFixed(1)}%</div>
+      <div class="hud-stat-line">SWORDS ${p.swords} &nbsp;L ${p.swordL.toFixed(1)}</div>
+      <div class="hud-stat-line">SPD ${Math.round(p.spdStat)}</div>
+      <div class="hud-stat-line">BARRACKS ${p.barracks > 0 ? "YES" : "NO"}</div>
     </div>
   `).join("");
 }
@@ -1054,7 +1371,7 @@ let hudTick = 0;
 function gameLoop(now) {
   requestAnimationFrame(gameLoop);
   const elapsed = (now - lastFrameTime) / 1000;
-  if (elapsed < 1 / 62) return; // 60 FPS cap
+  if (elapsed < 1 / 62) return;
   const dt = Math.min(0.05, elapsed);
   lastFrameTime = now;
 
@@ -1064,7 +1381,7 @@ function gameLoop(now) {
     }
     renderGame();
     hudTick += dt;
-    if (hudTick > 0.25) {
+    if (hudTick > 0.18) {
       hudTick = 0;
       updateHudLeaderboard();
     }
@@ -1072,9 +1389,10 @@ function gameLoop(now) {
 }
 requestAnimationFrame(gameLoop);
 
-/* --- MATCH FINISH & MODES ROUTING --- */
+/* --- MATCH FINISH --- */
 function finishMatch() {
   gameState.running = false;
+  if (isRecordingActive) stopRecording();
   sfx.play("win");
 
   const sortedAlive = gameState.players
@@ -1082,20 +1400,18 @@ function finishMatch() {
     .sort((a, b) => b.areaPct - a.areaPct || b.hp - a.hp);
 
   const winner = sortedAlive[0] || gameState.eliminationOrder[gameState.eliminationOrder.length - 1] || gameState.players[0];
-
-  // Ranked order for Tournament / League points
   const remainingAlive = sortedAlive.slice().reverse();
-  const fullFinishOrder = [...gameState.eliminationOrder, ...remainingAlive]; // 1st eliminated -> Winner last
+  const fullFinishOrder = [...gameState.eliminationOrder, ...remainingAlive]; // [1st Elim, 2nd Elim, Runner-Up, Winner]
 
   SaveData.coins += 35;
 
-  let predText = `Territory Controlled: ${winner.areaPct}% • Remaining HP: ${Math.ceil(winner.hp)}`;
+  let predText = `Territory Controlled: ${winner.areaPct.toFixed(1)}% • HP: ${Math.ceil(winner.hp)}`;
   if (gameState.mode === "watch" && gameState.predictedId) {
     if (winner.id === gameState.predictedId) {
       SaveData.streak++;
       SaveData.coins += 60;
       SaveData.daily[2].progress = 1;
-      predText = `🎯 Spot On! You predicted ${winner.name}! Streak: 🔥 ${SaveData.streak} (+60 Coins)`;
+      predText = `🎯 Correct Prediction! Streak: 🔥 ${SaveData.streak} (+60 Coins)`;
     } else {
       SaveData.streak = 0;
       predText = `❌ Prediction Missed! Streak reset to 0.`;
@@ -1110,27 +1426,93 @@ function finishMatch() {
   }
 
   document.getElementById("res-title").textContent = "🏆 Match Champion!";
-  document.getElementById("res-winner-badge").innerHTML = `${winner.flag} ${winner.name} <br><small style="font-size:12px;color:#fde047">${winner.traitName}</small>`;
+  document.getElementById("res-winner-badge").innerHTML = `
+    <img class="hud-flag-circle" style="width:32px;height:32px" src="${flagDataUrlCache[winner.id] || ""}" />
+    <span>${winner.name}</span>
+  `;
   document.getElementById("res-prediction-text").textContent = predText;
-  document.getElementById("res-stats").innerHTML = `<p class="small-note">Earned +35 Match Coins • Swords: ${winner.swords} • Barracks: ${winner.barracks}</p>`;
   document.getElementById("modal-result").classList.remove("hidden");
 }
 
-/* --- GROUP STAGE & KNOCKOUT TOURNAMENT (16 / 32 / 64 / 128) --- */
+/* ============================================================================
+ * TOURNAMENT MODE WITH PARTICIPATING COUNTRY SELECTOR
+ * ============================================================================ */
 let tourneyState = null;
+let selectedTourneyCountryIds = new Set(DEFAULT_COUNTRIES.slice(0, 16).map(c => c.id));
+
+function renderTourneyCountryPicker() {
+  const targetSize = parseInt(document.getElementById("sel-tourney-size").value, 10);
+  const all = getAllCountries();
+  document.getElementById("picker-count-label").textContent =
+    `Selected: ${selectedTourneyCountryIds.size} Countries (Bracket Size: ${targetSize})`;
+
+  const grid = document.getElementById("tourney-country-grid");
+  grid.innerHTML = all.map(c => {
+    const isSel = selectedTourneyCountryIds.has(c.id);
+    return `
+      <button class="picker-chip ${isSel ? "selected" : ""}" data-cid="${c.id}">
+        <img class="hud-flag-circle" src="${flagDataUrlCache[c.id] || ""}" />
+        <span>${c.name}</span>
+      </button>
+    `;
+  }).join("");
+
+  grid.querySelectorAll(".picker-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const cid = btn.dataset.cid;
+      if (selectedTourneyCountryIds.has(cid)) {
+        selectedTourneyCountryIds.delete(cid);
+      } else {
+        selectedTourneyCountryIds.add(cid);
+      }
+      renderTourneyCountryPicker();
+    });
+  });
+}
+
+document.getElementById("btn-toggle-picker").addEventListener("click", () => {
+  const box = document.getElementById("tourney-picker-box");
+  box.classList.toggle("hidden");
+  renderTourneyCountryPicker();
+});
+
+document.getElementById("btn-picker-all").addEventListener("click", () => {
+  getAllCountries().forEach(c => selectedTourneyCountryIds.add(c.id));
+  renderTourneyCountryPicker();
+});
+
+document.getElementById("btn-picker-clear").addEventListener("click", () => {
+  selectedTourneyCountryIds.clear();
+  renderTourneyCountryPicker();
+});
+
+document.getElementById("btn-picker-random").addEventListener("click", () => {
+  const size = parseInt(document.getElementById("sel-tourney-size").value, 10);
+  const shuffled = [...getAllCountries()].sort(() => Math.random() - 0.5);
+  selectedTourneyCountryIds = new Set(shuffled.slice(0, Math.min(size, shuffled.length)).map(c => c.id));
+  renderTourneyCountryPicker();
+});
 
 function generateTournamentRoster(size) {
-  const base = getAllCountries();
+  const all = getAllCountries();
+  let chosenPool = all.filter(c => selectedTourneyCountryIds.has(c.id));
+  if (chosenPool.length === 0) chosenPool = all;
+
   const roster = [];
   for (let i = 0; i < size; i++) {
-    const template = base[i % base.length];
+    const template = chosenPool[i % chosenPool.length];
+    const cloneId = i < chosenPool.length ? template.id : `${template.id}_${i}`;
+    if (!flagCanvasCache[cloneId]) {
+      flagCanvasCache[cloneId] = flagCanvasCache[template.id];
+      flagDataUrlCache[cloneId] = flagDataUrlCache[template.id];
+    }
     roster.push({
       ...template,
-      id: i < base.length ? template.id : `${template.id}_${i}`,
-      name: i < base.length ? template.name : `${template.name} ${Math.floor(i / base.length) + 1}`
+      id: cloneId,
+      name: i < chosenPool.length ? template.name : `${template.name} #${Math.floor(i / chosenPool.length) + 1}`
     });
   }
-  return roster.sort(() => Math.random() - 0.5);
+  return roster;
 }
 
 function startNewTournament() {
@@ -1162,7 +1544,7 @@ function renderTournamentUI() {
   const btnSim = document.getElementById("btn-sim-tourney-round");
 
   if (tourneyState.champion) {
-    info.innerHTML = `<h3 style="color:#fde047">👑 World Champion: ${tourneyState.champion.flag} ${tourneyState.champion.name}!</h3>`;
+    info.innerHTML = `<h3 style="color:#fde047">👑 Tournament Champion: ${tourneyState.champion.name}!</h3>`;
     btnPlay.classList.add("hidden");
     btnSim.classList.add("hidden");
   } else {
@@ -1174,8 +1556,13 @@ function renderTournamentUI() {
   container.innerHTML = tourneyState.groups.map((g, idx) => `
     <div class="group-box" style="${idx === tourneyState.currentGroupIdx && !tourneyState.champion ? "border-color:#38bdf8" : ""}">
       <h4>${g.name}</h4>
-      ${g.teams.map(t => `<div style="${g.winner && g.winner.id === t.id ? "color:#22c55e;font-weight:800" : ""}">${t.flag} ${t.name}</div>`).join("")}
-      ${g.winner ? `<div style="margin-top:4px;color:#fde047;font-size:11px">✔ Winner: ${g.winner.name}</div>` : ""}
+      ${g.teams.map(t => `
+        <div class="group-team-row" style="${g.winner && g.winner.id === t.id ? "color:#22c55e;font-weight:800" : ""}">
+          <img class="hud-flag-circle" style="width:14px;height:14px" src="${flagDataUrlCache[t.id] || ""}" />
+          <span>${t.name}</span>
+        </div>
+      `).join("")}
+      ${g.winner ? `<div style="margin-top:4px;color:#fde047;font-size:10.5px">✔ Advancing: ${g.winner.name}</div>` : ""}
     </div>
   `).join("");
 }
@@ -1189,7 +1576,6 @@ function advanceTournamentRoundIfReady() {
     SaveData.save();
     return;
   }
-  // If 2 winners remain, play Final; otherwise group in 4s (or 2s)
   const step = winners.length >= 4 ? 4 : 2;
   const nextGroups = [];
   for (let i = 0; i < winners.length; i += step) {
@@ -1213,15 +1599,24 @@ function handleTournamentMatchResult(winner) {
   renderTournamentUI();
 }
 
-/* --- LEAGUE MODE (16 / 20 / 24 COUNTRIES, 4-AT-A-TIME, 1-2-3-4 PTS) --- */
+/* ============================================================================
+ * LEAGUE MODE WITH FULL STANDINGS (Points, Wins, Runner-Up, 2nd Elim, 1st Elim)
+ * ============================================================================ */
 let leagueState = null;
 
 function startNewLeague() {
   const size = parseInt(document.getElementById("sel-league-size").value, 10);
-  const roster = generateTournamentRoster(size).map(c => ({
-    ...c, mp: 0, wins: 0, pts: 0
+  const all = getAllCountries();
+  const roster = all.slice(0, size).map(c => ({
+    ...c,
+    mp: 0,
+    wins: 0,
+    runnerUp: 0,
+    secondElim: 0,
+    firstElim: 0,
+    pts: 0
   }));
-  // Generate 5 rounds of 4-country matches
+
   const fixtures = [];
   for (let round = 1; round <= 5; round++) {
     const shuffled = [...roster].sort(() => Math.random() - 0.5);
@@ -1234,16 +1629,15 @@ function startNewLeague() {
 }
 
 function applyLeaguePoints(orderedFour) {
-  // 1st eliminated = 1 pt, 2nd eliminated = 2 pts, runner-up = 3 pts, winner = 4 pts
-  const ptsMap = [1, 2, 3, 4];
+  // orderedFour = [1st Eliminated (1pt), 2nd Eliminated (2pt), Runner-Up (3pt), Winner (4pt)]
   orderedFour.forEach((team, idx) => {
     const row = leagueState.table.find(r => r.id === team.id);
-    if (row) {
-      row.mp++;
-      const earned = ptsMap[Math.min(3, idx)];
-      row.pts += earned;
-      if (earned === 4) row.wins++;
-    }
+    if (!row) return;
+    row.mp++;
+    if (idx === 0) { row.firstElim++; row.pts += 1; }
+    else if (idx === 1) { row.secondElim++; row.pts += 2; }
+    else if (idx === 2) { row.runnerUp++; row.pts += 3; }
+    else { row.wins++; row.pts += 4; }
   });
 }
 
@@ -1257,14 +1651,23 @@ function handleLeagueMatchResult(fullFinishOrder) {
 
 function renderLeagueUI() {
   if (!leagueState) return;
-  const sorted = [...leagueState.table].sort((a, b) => b.pts - a.pts || b.wins - a.wins);
+  const sorted = [...leagueState.table].sort((a, b) => b.pts - a.pts || b.wins - a.wins || b.runnerUp - a.runnerUp);
+
   document.getElementById("league-tbody").innerHTML = sorted.map((r, i) => `
     <tr>
       <td>${i + 1}</td>
-      <td>${r.flag} <strong>${r.name}</strong></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px">
+          <img class="hud-flag-circle" style="width:15px;height:15px" src="${flagDataUrlCache[r.id] || ""}" />
+          <strong>${r.name}</strong>
+        </div>
+      </td>
       <td>${r.mp}</td>
-      <td>${r.wins}</td>
-      <td style="color:#fde047;font-weight:800">${r.pts}</td>
+      <td style="color:#4ade80;font-weight:700">${r.wins}</td>
+      <td style="color:#60a5fa">${r.runnerUp}</td>
+      <td style="color:#cbd5e1">${r.secondElim}</td>
+      <td style="color:#f87171">${r.firstElim}</td>
+      <td style="color:#fde047;font-weight:900">${r.pts}</td>
     </tr>
   `).join("");
 
@@ -1273,50 +1676,66 @@ function renderLeagueUI() {
   const btnSim = document.getElementById("btn-sim-league-round");
 
   if (leagueState.currentFixtureIdx >= leagueState.fixtures.length) {
-    info.innerHTML = `<h3 style="color:#fde047">🏆 League Champion: ${sorted[0].flag} ${sorted[0].name} (${sorted[0].pts} pts)!</h3>`;
+    info.innerHTML = `<h3 style="color:#fde047">🏆 League Champion: ${sorted[0].name} (${sorted[0].pts} pts)!</h3>`;
     btnPlay.classList.add("hidden");
     btnSim.classList.add("hidden");
   } else {
     const fx = leagueState.fixtures[leagueState.currentFixtureIdx];
     info.innerHTML = `Match ${leagueState.currentFixtureIdx + 1}/${leagueState.fixtures.length}: ` +
-      fx.teams.map(t => `${t.flag} ${t.name}`).join(" vs ");
+      fx.teams.map(t => t.name).join(" vs ");
     btnPlay.classList.remove("hidden");
     btnSim.classList.remove("hidden");
   }
 }
 
-/* --- UI & MENU WIRING --- */
+/* ============================================================================
+ * MENU & UI EVENT WIRING
+ * ============================================================================ */
 function updateMenuMeta() {
-  document.getElementById("streak-badge").textContent = `🔥 Prediction Streak: ${SaveData.streak}`;
+  buildAllFlagCaches();
+  document.getElementById("streak-badge").textContent = `🔥 Streak: ${SaveData.streak}`;
   document.getElementById("coins-badge").textContent = `🪙 Coins: ${SaveData.coins}`;
 
   const arenaSel = document.getElementById("sel-arena");
   arenaSel.innerHTML = ARENAS.map(a => {
     const unlocked = SaveData.unlockedArenas.includes(a.id);
-    return `<option value="${a.id}" ${unlocked ? "" : "disabled"}>${a.name} ${unlocked ? "" : "🔒 (Shop)"}</option>`;
+    return `<option value="${a.id}" ${unlocked ? "" : "disabled"}>${a.name} ${unlocked ? "" : "🔒"}</option>`;
   }).join("");
 
   const countrySel = document.getElementById("sel-user-country");
-  countrySel.innerHTML = getAllCountries().map(c => `<option value="${c.id}">${c.flag} ${c.name} — ${c.traitName}</option>`).join("");
+  countrySel.innerHTML = getAllCountries().map(c => `<option value="${c.id}">${c.name} (${c.traitName})</option>`).join("");
 }
 updateMenuMeta();
 
 function pickMatchParticipants() {
   const count = parseInt(document.getElementById("sel-player-count").value, 10);
-  const userCountryId = document.getElementById("sel-user-country").value;
   const all = getAllCountries();
-  const chosen = all.find(c => c.id === userCountryId) || all[0];
-  const others = all.filter(c => c.id !== chosen.id).sort(() => Math.random() - 0.5);
+
+  // For 4 players, default to the exact reference quartet (Turkey, USA, Brazil, Germany)
+  // unless the user specifically selected a different country for Play Mode
+  if (count === 4) {
+    const userChoice = document.getElementById("sel-user-country").value;
+    const refFour = [all[0], all[1], all[2], all[3]]; // Turkey, USA, Brazil, Germany
+    if (refFour.some(c => c.id === userChoice)) {
+      return refFour;
+    }
+    const chosen = all.find(c => c.id === userChoice) || all[0];
+    return [chosen, all[1], all[2], all[3]];
+  }
+
+  const userChoice = document.getElementById("sel-user-country").value;
+  const chosen = all.find(c => c.id === userChoice) || all[0];
+  const others = all.filter(c => c.id !== chosen.id);
   return [chosen, ...others.slice(0, count - 1)];
 }
 
-// Watch Mode (Prediction Modal first)
+// Watch Mode
 document.getElementById("btn-watch-mode").addEventListener("click", () => {
   const lineup = pickMatchParticipants();
   const grid = document.getElementById("predict-grid");
   grid.innerHTML = lineup.map(c => `
     <button class="predict-item" data-id="${c.id}">
-      <span style="font-size:22px">${c.flag}</span>
+      <img class="hud-flag-circle" style="width:28px;height:28px" src="${flagDataUrlCache[c.id] || ""}" />
       <div>
         <strong>${c.name}</strong>
         <small style="display:block;color:#94a3b8;font-size:10px">${c.traitName}</small>
@@ -1334,18 +1753,18 @@ document.getElementById("btn-watch-mode").addEventListener("click", () => {
   document.getElementById("modal-predict").classList.remove("hidden");
 });
 
-// Play Mode (Joystick)
+// Play Mode
 document.getElementById("btn-play-mode").addEventListener("click", () => {
   const lineup = pickMatchParticipants();
   gameState.predictedId = null;
   setupMatch(lineup, { mode: "play", contextMode: "quick" });
 });
 
-// Top HUD buttons
+// Match Utility Buttons
 document.getElementById("btn-exit-match").addEventListener("click", () => {
   gameState.running = false;
-  document.getElementById("hud").classList.add("hidden");
-  document.getElementById("play-controls").classList.add("hidden");
+  if (isRecordingActive) stopRecording();
+  document.getElementById("match-screen").classList.add("hidden");
   document.getElementById("menu-screen").classList.remove("hidden");
 });
 
@@ -1356,21 +1775,20 @@ document.getElementById("btn-speed-toggle").addEventListener("click", e => {
 
 document.getElementById("btn-record-toggle").addEventListener("click", toggleRecording);
 
-// Result modal buttons
-document.getElementById("btn-share-video").addEventListener("click", shareRecordedVideo);
+// Result Modal Buttons
+document.getElementById("btn-share-video").addEventListener("click", shareOrDownloadVideo);
 
 document.getElementById("btn-watch-ad-bonus").addEventListener("click", () => {
   showRewardedAd(() => {
     SaveData.coins += 100;
     SaveData.save();
-    alert("🎉 +100 Coins Added from Rewarded Ad!");
+    alert("🎉 +100 Coins Added!");
   });
 });
 
 document.getElementById("btn-result-continue").addEventListener("click", () => {
   document.getElementById("modal-result").classList.add("hidden");
-  document.getElementById("hud").classList.add("hidden");
-  document.getElementById("play-controls").classList.add("hidden");
+  document.getElementById("match-screen").classList.add("hidden");
   document.getElementById("menu-screen").classList.remove("hidden");
   if (gameState.contextMode === "tournament") {
     document.getElementById("modal-tournament").classList.remove("hidden");
@@ -1382,6 +1800,7 @@ document.getElementById("btn-result-continue").addEventListener("click", () => {
 // Tournament Modal
 document.getElementById("btn-tournament-mode").addEventListener("click", () => {
   if (!tourneyState) startNewTournament();
+  renderTourneyCountryPicker();
   document.getElementById("modal-tournament").classList.remove("hidden");
 });
 document.getElementById("btn-start-tourney").addEventListener("click", startNewTournament);
@@ -1428,7 +1847,7 @@ document.getElementById("btn-sim-league-round").addEventListener("click", () => 
   renderLeagueUI();
 });
 
-// Daily Challenges Modal
+// Daily Challenges
 document.getElementById("btn-daily-modal").addEventListener("click", () => {
   const list = document.getElementById("daily-list");
   list.innerHTML = SaveData.daily.map(d => `
@@ -1456,7 +1875,7 @@ document.getElementById("btn-daily-modal").addEventListener("click", () => {
   document.getElementById("modal-daily").classList.remove("hidden");
 });
 
-// Shop & Rewarded Ad Unlocks Modal
+// Shop Modal
 function renderShop() {
   const list = document.getElementById("shop-list");
   const arenaItems = ARENAS.filter(a => a.cost > 0).map(a => {
@@ -1467,7 +1886,7 @@ function renderShop() {
           <strong>🏟️ Arena: ${a.name}</strong>
           <div class="small-note">${owned ? "Unlocked" : `Cost: 🪙 ${a.cost} or Watch Ad`}</div>
         </div>
-        ${owned ? `<span style="color:#22c55e;font-weight:800">✔ Owned</span>` : `<button class="action-btn ad-btn" data-unlock-arena="${a.id}">🎬 Watch Ad / Unlock</button>`}
+        ${owned ? `<span style="color:#22c55e;font-weight:800">✔ Owned</span>` : `<button class="action-btn ad-btn" data-unlock-arena="${a.id}">🎬 Unlock</button>`}
       </div>
     `;
   });
@@ -1478,12 +1897,12 @@ function renderShop() {
     return `
       <div class="list-card">
         <div>
-          <strong style="color:${s.color}">🗡️ Sword Skin: ${s.name}</strong>
+          <strong style="color:${s.color}">🗡️ Sword: ${s.name}</strong>
           <div class="small-note">${owned ? "Unlocked" : `Cost: 🪙 ${s.cost} or Watch Ad`}</div>
         </div>
         ${owned
           ? `<button class="action-btn ${active ? "secondary" : ""}" data-equip-skin="${s.id}">${active ? "Equipped" : "Equip"}</button>`
-          : `<button class="action-btn ad-btn" data-unlock-skin="${s.id}">🎬 Watch Ad / Unlock</button>`}
+          : `<button class="action-btn ad-btn" data-unlock-skin="${s.id}">🎬 Unlock</button>`}
       </div>
     `;
   });
@@ -1527,7 +1946,7 @@ document.getElementById("btn-shop-modal").addEventListener("click", () => {
   document.getElementById("modal-shop").classList.remove("hidden");
 });
 
-// Custom Country Uploader
+// Custom Country Creator
 let pendingCustomImage = null;
 document.getElementById("inp-custom-flag").addEventListener("change", e => {
   const file = e.target.files[0];
@@ -1537,8 +1956,8 @@ document.getElementById("inp-custom-flag").addEventListener("change", e => {
     const img = new Image();
     img.onload = () => {
       const c = document.createElement("canvas");
-      c.width = 64; c.height = 64;
-      c.getContext("2d").drawImage(img, 0, 0, 64, 64);
+      c.width = 128; c.height = 128;
+      c.getContext("2d").drawImage(img, 0, 0, 128, 128);
       pendingCustomImage = c.toDataURL("image/png");
     };
     img.src = ev.target.result;
@@ -1557,23 +1976,21 @@ document.getElementById("btn-save-custom").addEventListener("click", () => {
   const newCountry = {
     id: "cust_" + Date.now(),
     name,
-    flag: "🏳️",
     color,
-    bands: [color, "#ffffff", color],
     trait,
     traitName: `Custom (${trait.toUpperCase()})`,
     imgData: pendingCustomImage
   };
   SaveData.customCountries.unshift(newCountry);
-  cacheCustomImages();
+  selectedTourneyCountryIds.add(newCountry.id);
   SaveData.save();
   pendingCustomImage = null;
   document.getElementById("inp-custom-name").value = "";
-  alert(`✅ Added "${name}" to the country roster!`);
+  alert(`✅ Added "${name}" with full circular flag!`);
   document.getElementById("modal-custom").classList.add("hidden");
 });
 
-// Settings Modal
+// Settings
 document.getElementById("btn-settings-modal").addEventListener("click", () => {
   document.getElementById("modal-settings").classList.remove("hidden");
 });
@@ -1581,14 +1998,13 @@ document.getElementById("chk-sound").addEventListener("change", e => {
   sfx.enabled = e.target.checked;
 });
 
-// Close buttons for all modals
 document.querySelectorAll(".close-modal").forEach(btn => {
   btn.addEventListener("click", () => {
     document.getElementById(btn.dataset.close).classList.add("hidden");
   });
 });
 
-/* --- VIRTUAL JOYSTICK TOUCH HANDLERS --- */
+/* --- VIRTUAL JOYSTICK --- */
 const joyZone = document.getElementById("joystick-zone");
 const joyKnob = document.getElementById("joystick-knob");
 
@@ -1596,7 +2012,7 @@ function handleJoyMove(clientX, clientY) {
   const rect = joyZone.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
-  const maxDist = 42;
+  const maxDist = 38;
   let dx = clientX - cx;
   let dy = clientY - cy;
   const dist = Math.hypot(dx, dy) || 1;
@@ -1630,7 +2046,7 @@ joyZone.addEventListener("touchend", () => {
 document.getElementById("btn-dash-ability").addEventListener("click", () => {
   const human = gameState.players.find(p => p.isHuman && p.alive);
   if (human && human.dashCooldown <= 0) {
-    human.speedBoostTimer = 2.2;
+    human.speedBoostTimer = 2.5;
     human.dashCooldown = 5;
     sfx.play("powerup");
   }
